@@ -1,0 +1,68 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>@if (modoEdicao) { Editar disciplina } @else { Cadastrar disciplina }</h1>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/disciplinas">Voltar</button>
+      <button
+        type="button"
+        class="primary"
+        (click)="salvar()"
+        [disabled]="loading || loadingProfessores || professores.length === 0"
+      >
+        @if (loading) { Salvando... } @else { Salvar }
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    @if (loadingProfessores) {
+      <p class="muted">Carregando professores...</p>
+    } @else {
+      <form (ngSubmit)="salvar()">
+        <div class="grid">
+          <label>
+            <span>Nome</span>
+            <input [(ngModel)]="form.nome" name="nome" />
+          </label>
+
+          <label>
+            <span>Professor</span>
+            <select [(ngModel)]="form.idProfessor" name="idProfessor">
+              <option [ngValue]="null" disabled>Selecione um professor</option>
+              @for (professor of professores; track professor.id) {
+                <option [ngValue]="professor.id">{{ professor.nome }}</option>
+              }
+            </select>
+          </label>
+
+          <label>
+            <span>Data início</span>
+            <input [(ngModel)]="form.dataInicio" name="dataInicio" type="date" />
+          </label>
+
+          <label>
+            <span>Data fim</span>
+            <input [(ngModel)]="form.dataFim" name="dataFim" type="date" />
+          </label>
+        </div>
+
+        <div class="footer">
+          <button
+            type="submit"
+            class="primary"
+            [disabled]="loading || professores.length === 0"
+          >
+            @if (loading) { Salvando... } @else { Salvar }
+          </button>
+        </div>
+      </form>
+    }
+  </section>
+</div>

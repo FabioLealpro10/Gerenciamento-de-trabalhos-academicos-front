@@ -1,0 +1,101 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>Trabalhos da disciplina</h1>
+      <p class="subtitle">{{ tituloDisciplina }}</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/dashboard">Voltar</button>
+      <button type="button" class="ghost" (click)="verAlunosMatriculados()">
+        Ver alunos matriculados
+      </button>
+      <button type="button" class="primary" (click)="irParaCadastro()">
+        Cadastrar trabalho
+      </button>
+    </div>
+  </header>
+
+  @if (successMessage) {
+    <div class="alert success">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    <div class="card-header">
+      <h2>Lista</h2>
+      <button type="button" class="ghost" (click)="carregar()" [disabled]="loading">
+        Atualizar
+      </button>
+    </div>
+
+    @if (loading) {
+      <p class="muted">Carregando...</p>
+    } @else if (trabalhos.length === 0) {
+      <p class="muted">Nenhum trabalho cadastrado nesta disciplina.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Início</th>
+              <th>Fim</th>
+              <th>Arquivo</th>
+              <th>Entregas</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (trabalho of trabalhos; track trabalho.id ?? trabalho.titulo) {
+              <tr>
+                <td>
+                  <strong>{{ trabalho.titulo }}</strong>
+                  @if (trabalho.descricao) {
+                    <p class="descricao">{{ trabalho.descricao }}</p>
+                  }
+                </td>
+                <td>{{ trabalho.dataInicio ?? '-' }}</td>
+                <td>{{ trabalho.dataFim ?? '-' }}</td>
+                <td>
+                  @if (trabalho.linkArquivoTrabalho) {
+                    <a
+                      [href]="trabalho.linkArquivoTrabalho"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Abrir
+                    </a>
+                  } @else {
+                    -
+                  }
+                </td>
+                <td>
+                  <button type="button" class="ghost" (click)="verEntregas(trabalho)">
+                    Ver entregas
+                  </button>
+                </td>
+                <td class="acoes">
+                  <button type="button" class="ghost" (click)="editar(trabalho)">
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost danger"
+                    (click)="excluir(trabalho)"
+                    [disabled]="loading"
+                  >
+                    Excluir
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

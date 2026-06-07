@@ -1,0 +1,72 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>Gerenciamento de Professores</h1>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/dashboard">Voltar</button>
+      <button type="button" class="primary" (click)="irParaCadastro()">
+        Cadastrar professor
+      </button>
+    </div>
+  </header>
+
+  @if (successMessage) {
+    <div class="alert success">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    <div class="card-header">
+      <h2>Lista</h2>
+      <button type="button" class="ghost" (click)="carregar()" [disabled]="loading">
+        Atualizar
+      </button>
+    </div>
+
+    @if (loading) {
+      <p class="muted">Carregando...</p>
+    } @else if (professores.length === 0) {
+      <p class="muted">Nenhum professor cadastrado ainda.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Email</th>
+              <th>Área de atuação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (professor of professores; track professor.id ?? professor.email) {
+              <tr>
+                <td>{{ professor.nome }}</td>
+                <td>{{ professor.email }}</td>
+                <td>{{ professor.areaAtuacao ?? '-' }}</td>
+                <td class="acoes">
+                  <button type="button" class="ghost" (click)="editar(professor)">
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost danger"
+                    (click)="excluir(professor)"
+                    [disabled]="loading"
+                  >
+                    Excluir
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

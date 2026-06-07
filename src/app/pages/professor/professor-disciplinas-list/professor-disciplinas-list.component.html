@@ -1,0 +1,64 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>Minhas Disciplinas</h1>
+      <p class="subtitle">Disciplinas que você ministra</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/dashboard">Voltar</button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    <div class="card-header">
+      <h2>Lista</h2>
+      <button type="button" class="ghost" (click)="carregar()" [disabled]="loading">
+        Atualizar
+      </button>
+    </div>
+
+    @if (loading) {
+      <p class="muted">Carregando...</p>
+    } @else if (disciplinas.length === 0) {
+      <p class="muted">Nenhuma disciplina vinculada ao seu perfil.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Início</th>
+              <th>Fim</th>
+              <th>Alunos</th>
+              <th>Trabalhos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (disciplina of disciplinas; track disciplina.id ?? disciplina.nome) {
+              <tr>
+                <td>{{ disciplina.nome }}</td>
+                <td>{{ disciplina.dataInicio ?? '-' }}</td>
+                <td>{{ disciplina.dataFim ?? '-' }}</td>
+                <td>
+                  <button type="button" class="ghost" (click)="verAlunosMatriculados(disciplina)">
+                    Ver alunos
+                  </button>
+                </td>
+                <td>
+                  <button type="button" class="ghost" (click)="gerenciarTrabalhos(disciplina)">
+                    Gerenciar trabalhos
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</div>

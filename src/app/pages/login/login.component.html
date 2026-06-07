@@ -1,0 +1,36 @@
+<div class="login-container">
+  <div class="login-card">
+    <h1>Login</h1>
+    <p class="subtitle">Gerenciamento de Trabalhos Acadêmicos</p>
+
+    <form (ngSubmit)="login()">
+      <label for="email">Email</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        [(ngModel)]="email"
+        [disabled]="loading"
+        placeholder="seu@email.com"
+        required />
+
+      <label for="password">Senha</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        [(ngModel)]="password"
+        [disabled]="loading"
+        placeholder="Digite sua senha"
+        required />
+
+      <p class="error-message" role="alert" [hidden]="!errorMessage">
+        {{ errorMessage || ' ' }}
+      </p>
+
+      <button type="submit" [disabled]="loading">
+        {{ loading ? 'Entrando...' : 'Entrar' }}
+      </button>
+    </form>
+  </div>
+</div>

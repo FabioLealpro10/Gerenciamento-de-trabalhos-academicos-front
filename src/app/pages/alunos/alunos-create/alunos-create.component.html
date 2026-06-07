@@ -1,0 +1,65 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>@if (modoEdicao) { Editar aluno } @else { Cadastrar aluno }</h1>
+      
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/alunos">Voltar</button>
+      <button type="button" class="primary" (click)="salvar()" [disabled]="loading">
+        @if (loading) { Salvando... } @else { Salvar }
+      </button>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    <form (ngSubmit)="salvar()">
+      <div class="grid">
+        <label>
+          <span>Nome</span>
+          <input [(ngModel)]="form.nome" name="nome" autocomplete="name" />
+        </label>
+
+        <label>
+          <span>Email</span>
+          <input
+            [(ngModel)]="form.email"
+            name="email"
+            type="email"
+            autocomplete="email"
+          />
+        </label>
+
+        <label>
+          <span>Senha</span>
+          <input
+            [(ngModel)]="form.password"
+            name="password"
+            type="password"
+            [attr.autocomplete]="modoEdicao ? 'new-password' : 'new-password'"
+            [placeholder]="modoEdicao ? 'Deixe em branco para não alterar' : ''"
+          />
+        </label>
+
+        <label>
+          <span>Turma</span>
+          <input [(ngModel)]="form.turma" name="turma" />
+        </label>
+      </div>
+
+      <div class="footer">
+        <button type="submit" class="primary" [disabled]="loading">
+          @if (loading) { Salvando... }
+          
+          @else { Salvar }
+        </button>
+       
+      </div>
+    </form>
+  </section>
+</div>

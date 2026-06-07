@@ -2,7 +2,8 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "cli": {
-    "packageManager": "npm"
+    "packageManager": "npm",
+    "analytics": "b39ae6dc-54ab-4658-83c0-ded41829a05d"
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -67,7 +68,8 @@
               "buildTarget": "Gerenciamento-de-trabalhos-academicos:build:production"
             },
             "development": {
-              "buildTarget": "Gerenciamento-de-trabalhos-academicos:build:development"
+              "buildTarget": "Gerenciamento-de-trabalhos-academicos:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
