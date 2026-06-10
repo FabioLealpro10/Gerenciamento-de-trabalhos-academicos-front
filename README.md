@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 Gerenciador de Trabalhos
 
-dwededwdewfdwefeewdeweddfcerfsf
+
 
 Sistema desenvolvido em Spring Boot para gerenciar trabalhos acadêmicos. Ele permite que administradores, professores e alunos realizem ações como criação de disciplinas, envio de trabalhos e correção de entregas.
 
