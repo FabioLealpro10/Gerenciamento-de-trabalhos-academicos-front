@@ -1,0 +1,115 @@
+<div class="dashboard">
+  @if (usuario) {
+    <header class="dashboard-header">
+      <div>
+        <h1>Olá, {{ usuario.nome }}</h1>
+        <p>
+          Perfil:
+          <span class="badge">{{ getTipoLabel(usuario.tipo) }}</span>
+        </p>
+      </div>
+
+      <button type="button" class="logout-btn" (click)="logout()">Sair</button>
+    </header>
+  }
+
+  @if (ehProfessor || ehAluno) {
+    <section class="disciplinas-section">
+      <div class="section-top">
+        <div>
+          <h2>Minhas disciplinas</h2>
+          <p class="section-description">
+            @if (ehProfessor) {
+              Disciplinas que você ministra. Clique em um card para gerenciar os trabalhos.
+            } @else {
+              Disciplinas em que você está matriculado. Clique para ver os trabalhos e entregar.
+            }
+          </p>
+        </div>
+        <button
+          type="button"
+          class="ghost-btn"
+          (click)="ehProfessor ? carregarDisciplinasProfessor() : carregarDisciplinasAluno()"
+          [disabled]="loadingDisciplinas"
+        >
+          Atualizar
+        </button>
+      </div>
+
+      @if (errorMessage) {
+        <div class="alert error">{{ errorMessage }}</div>
+      }
+
+      @if (loadingDisciplinas) {
+        <p class="empty-message">Carregando disciplinas...</p>
+      } @else if (disciplinas.length === 0) {
+        <p class="empty-message">
+          @if (ehProfessor) {
+            Nenhuma disciplina vinculada ao seu perfil.
+          } @else {
+            Você não está matriculado em nenhuma disciplina.
+          }
+        </p>
+      } @else {
+        <div class="disciplinas-grid">
+          @for (disciplina of disciplinas; track disciplina.id ?? disciplina.nome) {
+            <article class="disciplina-card">
+              <h3>{{ disciplina.nome }}</h3>
+              <dl class="meta">
+                <div>
+                  <dt>Início</dt>
+                  <dd>{{ disciplina.dataInicio ?? '-' }}</dd>
+                </div>
+                <div>
+                  <dt>Fim</dt>
+                  <dd>{{ disciplina.dataFim ?? '-' }}</dd>
+                </div>
+              </dl>
+              <div class="card-actions">
+                @if (ehProfessor) {
+                  <button
+                    type="button"
+                    class="btn-outline"
+                    (click)="verAlunosMatriculados(disciplina, $event)"
+                  >
+                    Ver alunos matriculados
+                  </button>
+                  <button type="button" (click)="abrirDisciplina(disciplina)">
+                    Gerenciar trabalhos
+                  </button>
+                } @else {
+                  <button type="button" (click)="abrirDisciplina(disciplina)">
+                    Ver trabalhos
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  } @else {
+    <section class="features-section">
+      <h2>Suas funcionalidades</h2>
+      <p class="section-description">
+        As opções abaixo variam de acordo com o seu tipo de usuário.
+      </p>
+
+      @if (funcionalidades.length === 0) {
+        <p class="empty-message">Nenhuma funcionalidade disponível para este perfil.</p>
+      } @else {
+        <div class="features-grid">
+          @for (feature of funcionalidades; track feature.id) {
+            <article class="feature-card">
+              <h3>{{ feature.titulo }}</h3>
+              <p>{{ feature.descricao }}</p>
+              <button type="button" (click)="abrirFuncionalidade(feature)">
+                Acessar
+              </button>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

@@ -1,0 +1,124 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>Entregas do trabalho</h1>
+      <p class="subtitle">{{ tituloPagina }}</p>
+      @if (trabalho?.disciplinaNome) {
+        <p class="muted-inline">Disciplina: {{ trabalho?.disciplinaNome }}</p>
+      }
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" [routerLink]="linkVoltar">Voltar</button>
+    </div>
+  </header>
+
+  @if (successMessage) {
+    <div class="alert success">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    <div class="card-header">
+      <h2>Alunos que entregaram</h2>
+      <button type="button" class="ghost" (click)="carregar()" [disabled]="loading">
+        Atualizar
+      </button>
+    </div>
+
+    @if (loading) {
+      <p class="muted">Carregando...</p>
+    } @else if (entregas.length === 0) {
+      <p class="muted">Nenhuma entrega registrada para este trabalho.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Aluno</th>
+              <th>Data da entrega</th>
+              <th>Nota</th>
+              <th>Feedback</th>
+              <th>Arquivo</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entrega of entregas; track entrega.id ?? entrega.alunoId) {
+              <tr [class.linha-ativa]="entregaSelecionada?.alunoId === entrega.alunoId">
+                <td>{{ entrega.alunoNome ?? '-' }}</td>
+                <td>{{ entrega.dataEntrega ?? '-' }}</td>
+                <td>{{ entrega.nota != null ? entrega.nota : '-' }}</td>
+                <td>{{ entrega.feedback?.trim() ? entrega.feedback : '-' }}</td>
+                <td>
+                  @if (entrega.linkArquivo) {
+                    <a [href]="entrega.linkArquivo" target="_blank" rel="noopener noreferrer">
+                      Abrir
+                    </a>
+                  } @else {
+                    -
+                  }
+                </td>
+                <td>
+                  <button type="button" class="ghost" (click)="abrirCorrecao(entrega)">
+                    Corrigir
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  @if (entregaSelecionada) {
+    <section class="card correcao-card">
+      <div class="card-header">
+        <h2>
+          Corrigir entrega — {{ entregaSelecionada.alunoNome ?? 'Aluno' }}
+        </h2>
+        <button type="button" class="ghost" (click)="fecharCorrecao()">Fechar</button>
+      </div>
+
+      <form (ngSubmit)="salvarCorrecao()">
+        <div class="grid">
+          <label>
+            <span>Nota</span>
+            <input
+              [(ngModel)]="notaCorrecao"
+              name="notaCorrecao"
+              type="number"
+              min="0"
+              max="10"
+              step="0.1"
+              required
+            />
+          </label>
+
+          <label class="full">
+            <span>Feedback (opcional)</span>
+            <textarea
+              [(ngModel)]="feedbackCorrecao"
+              name="feedbackCorrecao"
+              rows="4"
+              placeholder="Comentários sobre a entrega do aluno..."
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="footer">
+          <button type="button" class="secondary" (click)="fecharCorrecao()">
+            Cancelar
+          </button>
+          <button type="submit" class="primary" [disabled]="loadingCorrecao">
+            @if (loadingCorrecao) { Salvando... } @else { Salvar correção }
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</div>

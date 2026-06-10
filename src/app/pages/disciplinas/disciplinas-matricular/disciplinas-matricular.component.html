@@ -1,0 +1,109 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>Matricular alunos</h1>
+      @if (disciplina) {
+      <p class="subtitle">{{ disciplina.nome }}</p>
+      }
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/disciplinas">Voltar</button>
+    </div>
+  </header>
+
+  @if (successMessage) {
+  <div class="alert success">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+  <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  @if (disciplina) {
+  <section class="card info-disciplina">
+    <h2>Dados da disciplina</h2>
+    <dl class="detalhes">
+      <div>
+        <dt>Nome</dt>
+        <dd>{{ disciplina.nome }}</dd>
+      </div>
+      <div>
+        <dt>Início</dt>
+        <dd>{{ disciplina.dataInicio ?? '-' }}</dd>
+      </div>
+      <div>
+        <dt>Fim</dt>
+        <dd>{{ disciplina.dataFim ?? '-' }}</dd>
+      </div>
+      <div>
+        <dt>Professor</dt>
+        <dd>{{ disciplina.professor ?? '-' }}</dd>
+      </div>
+    </dl>
+  </section>
+  }
+
+  <section class="card">
+    <h2>Adicionar aluno</h2>
+
+    @if (loadingDados) {
+    <p class="muted">Carregando...</p>
+    } @else {
+    <div class="matricula-form">
+      <label>
+        <span>Aluno</span>
+        <select [(ngModel)]="alunoSelecionadoId" name="alunoSelecionadoId">
+          <option [ngValue]="null" disabled>Selecione um aluno</option>
+          @for (aluno of alunosDisponiveis; track aluno.id) {
+          <option [ngValue]="aluno.id">{{ aluno.nome }} — {{ aluno.email }}</option>
+          }
+        </select>
+      </label>
+
+      <button type="button" class="primary" (click)="matricular()"
+        [disabled]="loading || alunosDisponiveis.length === 0">
+        @if (loading) { Matriculando... } @else { Matricular }
+      </button>
+    </div>
+
+    @if (alunosDisponiveis.length === 0) {
+    <p class="muted">Todos os alunos já estão matriculados ou não há alunos cadastrados.</p>
+    }
+    }
+  </section>
+
+  <section class="card">
+    <h2>Alunos matriculados</h2>
+
+    @if (loadingDados) {
+    <p class="muted">Carregando...</p>
+    } @else if (alunosMatriculados.length === 0) {
+    <p class="muted">Nenhum aluno matriculado nesta disciplina ainda.</p>
+    } @else {
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (aluno of alunosMatriculados; track aluno.id) {
+          <tr>
+            <td>{{ aluno.nome }}</td>
+
+            <td>
+              <button type="button" class="ghost danger" (click)="removerMatricula(aluno)" [disabled]="loading">
+                Remover
+              </button>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    }
+  </section>
+</div>
