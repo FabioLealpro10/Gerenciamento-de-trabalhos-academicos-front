@@ -132,6 +132,7 @@ export class DisciplinasService {
       alunosMatriculados,
     };
   }
+<<<<<<< HEAD
   desmatricular(
     alunoId: number | string,
     disciplinaId: number | string,
@@ -143,4 +144,6 @@ export class DisciplinasService {
       },
     );
   }
+=======
+>>>>>>> origin/main
 }

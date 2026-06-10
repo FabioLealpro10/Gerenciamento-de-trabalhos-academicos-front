@@ -4,7 +4,11 @@
       <h1>Entrega do trabalho</h1>
       <p class="subtitle">{{ tituloTrabalho }}</p>
       @if (disciplina) {
+<<<<<<< HEAD
       <p class="muted-inline">Disciplina: {{ disciplina.nome }}</p>
+=======
+        <p class="muted-inline">Disciplina: {{ disciplina.nome }}</p>
+>>>>>>> origin/main
       }
     </div>
 
@@ -14,6 +18,7 @@
   </header>
 
   @if (successMessage) {
+<<<<<<< HEAD
   <div class="alert success">{{ successMessage }}</div>
   }
 
@@ -124,3 +129,114 @@
   </section>
   }
 </div>
+=======
+    <div class="alert success">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  @if (!loadingDados && jaEntregou && foiCorrigido) {
+    <div class="alert info">
+      Esta entrega já foi corrigida pelo professor e não pode mais ser alterada.
+    </div>
+  }
+
+  @if (!loadingDados && jaEntregou && !foiCorrigido) {
+    <div class="alert info">
+      Você já entregou este trabalho. Pode editar o link abaixo até o professor corrigir.
+    </div>
+  }
+
+  @if (trabalho) {
+    <section class="card">
+      <h2>Enunciado</h2>
+      @if (trabalho.descricao) {
+        <p class="texto">{{ trabalho.descricao }}</p>
+      }
+      <p class="muted">Prazo: {{ trabalho.dataFim ?? '-' }}</p>
+      @if (trabalho.linkArquivoTrabalho) {
+        <a [href]="trabalho.linkArquivoTrabalho" target="_blank" rel="noopener noreferrer">
+          Abrir arquivo do trabalho
+        </a>
+      }
+    </section>
+  }
+
+  @if (jaEntregou && entrega) {
+    <section class="card feedback-card">
+      <h2>Sua entrega e feedback</h2>
+      <dl class="detalhes">
+        <div>
+          <dt>Link enviado</dt>
+          <dd>
+            @if (entrega.linkArquivo) {
+              <a [href]="entrega.linkArquivo" target="_blank" rel="noopener noreferrer">
+                Abrir arquivo
+              </a>
+            } @else {
+              -
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Data da entrega</dt>
+          <dd>{{ formatarDataBr(entrega.dataEntrega) }}</dd>
+        </div>
+        <div>
+          <dt>Nota</dt>
+          <dd class="nota">
+            {{ entrega.nota != null ? entrega.nota : 'Aguardando correção' }}
+          </dd>
+        </div>
+        <div class="full">
+          <dt>Feedback do professor</dt>
+          <dd>{{ entrega.feedback?.trim() ? entrega.feedback : 'Ainda sem feedback.' }}</dd>
+        </div>
+      </dl>
+    </section>
+  }
+
+  @if (!foiCorrigido) {
+    <section class="card">
+      <h2>@if (jaEntregou) { Editar entrega } @else { Registrar entrega }</h2>
+
+      @if (loadingDados) {
+        <p class="muted">Carregando...</p>
+      } @else {
+        <p class="info-data">
+          A data da entrega será registrada automaticamente:
+          <strong>{{ formatarDataBr(dataEntregaAutomatica) }}</strong>
+        </p>
+
+        <form (ngSubmit)="salvar()">
+          <div class="grid">
+            <label class="full">
+              <span>Link do arquivo</span>
+              <input
+                [(ngModel)]="linkArquivo"
+                name="linkArquivo"
+                type="url"
+                placeholder="https://..."
+              />
+            </label>
+          </div>
+
+          <div class="footer">
+            <button type="submit" class="primary" [disabled]="loading">
+              @if (loading) {
+                Salvando...
+              } @else if (jaEntregou) {
+                Salvar alterações
+              } @else {
+                Enviar entrega
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </section>
+  }
+</div>
+>>>>>>> origin/main

@@ -31,11 +31,16 @@ export class EntregasService {
     trabalhoId: number | string,
   ): Observable<EntregaListItem | null> {
     return this.http
+<<<<<<< HEAD
       .get<unknown>(
+=======
+      .get<Record<string, unknown>>(
+>>>>>>> origin/main
         `${ENTREGAS_URL}/aluno/${alunoId}/trabalho/${trabalhoId}`,
         this.auth.getAuthOptions(),
       )
       .pipe(
+<<<<<<< HEAD
         map((body) => {
           if (body == null || typeof body !== 'object') {
             return null;
@@ -43,6 +48,9 @@ export class EntregasService {
 
           return this.normalizarEntrega(body as Record<string, unknown>);
         }),
+=======
+        map((body) => this.normalizarEntrega(body)),
+>>>>>>> origin/main
         catchError((err: HttpErrorResponse) => {
           if (err.status === 404) {
             return of(null);
@@ -52,6 +60,7 @@ export class EntregasService {
       );
   }
 
+<<<<<<< HEAD
   cadastrar(payload: EntregaCreateRequest): Observable<EntregaListItem> {
     return this.http
       .post<unknown>(ENTREGAS_URL, payload, this.auth.getAuthOptions())
@@ -69,12 +78,21 @@ export class EntregasService {
           };
         }),
       );
+=======
+  cadastrar(payload: EntregaCreateRequest): Observable<unknown> {
+    const headers = this.auth
+      .getAuthHeaders()
+      .set('Content-Type', 'application/json');
+
+    return this.http.post(ENTREGAS_URL, payload, { headers });
+>>>>>>> origin/main
   }
 
   atualizar(
     alunoId: number | string,
     trabalhoId: number | string,
     payload: EntregaUpdateRequest,
+<<<<<<< HEAD
   ): Observable<EntregaListItem> {
     return this.http
       .put<unknown>(
@@ -96,6 +114,18 @@ export class EntregasService {
           };
         }),
       );
+=======
+  ): Observable<unknown> {
+    const headers = this.auth
+      .getAuthHeaders()
+      .set('Content-Type', 'application/json');
+
+    return this.http.put(
+      `${ENTREGAS_URL}/aluno/${alunoId}/trabalho/${trabalhoId}`,
+      payload,
+      { headers },
+    );
+>>>>>>> origin/main
   }
 
   corrigir(
@@ -103,10 +133,21 @@ export class EntregasService {
     alunoId: number | string,
     payload: EntregaCorrigirRequest,
   ): Observable<unknown> {
+<<<<<<< HEAD
     return this.http.patch(
       `${ENTREGAS_URL}/trabalho/${trabalhoId}/aluno/${alunoId}/corrigir`,
       payload,
       this.auth.getAuthOptions(),
+=======
+    const headers = this.auth
+      .getAuthHeaders()
+      .set('Content-Type', 'application/json');
+
+    return this.http.patch(
+      `${ENTREGAS_URL}/trabalho/${trabalhoId}/aluno/${alunoId}/corrigir`,
+      payload,
+      { headers },
+>>>>>>> origin/main
     );
   }
 

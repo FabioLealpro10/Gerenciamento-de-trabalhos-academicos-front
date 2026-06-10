@@ -30,7 +30,11 @@ export class DisciplinasMatricularComponent implements OnInit {
   alunoSelecionadoId: number | null = null;
 
   alunosDisponiveis: UsuarioListItem[] = [];
+<<<<<<< HEAD
   alunosMatriculados: UsuarioListItem[] = [];
+=======
+  alunosMatriculados: string[] = [];
+>>>>>>> origin/main
 
   loading = false;
   loadingDados = false;
@@ -48,6 +52,7 @@ export class DisciplinasMatricularComponent implements OnInit {
     this.carregarDados();
   }
 
+<<<<<<< HEAD
   removerMatricula(aluno: UsuarioListItem): void {
     if (!this.disciplinaId || aluno.id == null) {
       return;
@@ -94,6 +99,8 @@ export class DisciplinasMatricularComponent implements OnInit {
       });
   }
 
+=======
+>>>>>>> origin/main
   matricular(): void {
     this.errorMessage = '';
     this.successMessage = '';
@@ -165,6 +172,7 @@ export class DisciplinasMatricularComponent implements OnInit {
       .subscribe({
         next: ({ disciplina, alunos }) => {
           this.disciplina = disciplina;
+<<<<<<< HEAD
           const nomesMatriculados = new Set(
             (disciplina.alunosMatriculados ?? []).map((nome) =>
               nome.trim().toLowerCase(),
@@ -177,14 +185,24 @@ export class DisciplinasMatricularComponent implements OnInit {
               nomesMatriculados.has(
                 aluno.nome.trim().toLowerCase(),
               ),
+=======
+          this.alunosMatriculados = disciplina.alunosMatriculados ?? [];
+
+          const nomesMatriculados = new Set(
+            this.alunosMatriculados.map((nome) => nome.trim().toLowerCase()),
+>>>>>>> origin/main
           );
 
           this.alunosDisponiveis = (alunos ?? []).filter(
             (aluno) =>
               aluno.id != null &&
+<<<<<<< HEAD
               !nomesMatriculados.has(
                 aluno.nome.trim().toLowerCase(),
               ),
+=======
+              !nomesMatriculados.has(aluno.nome.trim().toLowerCase()),
+>>>>>>> origin/main
           );
         },
         error: (err: HttpErrorResponse) => {
