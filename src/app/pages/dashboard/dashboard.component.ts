@@ -10,10 +10,12 @@ import { AlunoContextService } from '../../core/services/aluno-context.service';
 import { DisciplinaListItem } from '../../core/models/disciplina.model';
 import { FeatureItem, TipoUsuario } from '../../core/models/user.model';
 import { mensagemErroHttp } from '../../core/utils/http-error.util';
+import { DataBrPipe } from '../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
+  imports: [DataBrPipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

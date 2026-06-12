@@ -47,17 +47,13 @@
                   }
                 </td>
                 <td>
-                  <span class="prazo">{{ trabalho.dataFim ?? '-' }}</span>
+                  <span class="prazo">{{ trabalho.dataFim | dataBr }}</span>
                 </td>
                 <td>
-                  @if (trabalho.linkArquivoTrabalho) {
-                    <a
-                      [href]="trabalho.linkArquivoTrabalho"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Abrir enunciado
-                    </a>
+                  @if (trabalho.caminhoArquivoPdf) {
+                    <button type="button" class="ghost" (click)="abrirPdf(trabalho)">
+                      Abrir enunciado (PDF)
+                    </button>
                   } @else {
                     -
                   }
@@ -72,6 +68,16 @@
           </tbody>
         </table>
       </div>
+
+      <app-paginacao
+        [page]="paginacao.page"
+        [size]="paginacao.size"
+        [totalPages]="totalPages"
+        [totalElements]="totalElements"
+        [disabled]="loading"
+        (pageChange)="mudarPagina($event)"
+        (sizeChange)="mudarTamanhoPagina($event)"
+      />
     }
   </section>
 </div>

@@ -32,15 +32,14 @@
             <input [(ngModel)]="form.nome" name="nome" />
           </label>
 
-          <label>
-            <span>Professor</span>
-            <select [(ngModel)]="form.idProfessor" name="idProfessor">
-              <option [ngValue]="null" disabled>Selecione um professor</option>
-              @for (professor of professores; track professor.id) {
-                <option [ngValue]="professor.id">{{ professor.nome }}</option>
-              }
-            </select>
-          </label>
+          <div class="full">
+            <app-selecao-pesquisa
+              rotulo="Professor ministrante"
+              placeholder="Pesquisar professor por nome ou e-mail..."
+              [opcoes]="opcoesProfessores"
+              [(selecionadoId)]="form.idProfessor"
+            />
+          </div>
 
           <label>
             <span>Data início</span>

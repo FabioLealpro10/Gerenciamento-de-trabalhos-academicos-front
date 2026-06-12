@@ -1,7 +1,6 @@
 export interface TrabalhoFormFields {
   titulo: string;
   descricao: string;
-  linkArquivoTrabalho: string;
   dataInicio: string;
   dataFim: string;
   disciplinaId: number | null;
@@ -16,10 +15,6 @@ export function validarCadastroTrabalho(
 
   if (!campoPreenchido(form.descricao)) {
     return 'Preencha a descrição.';
-  }
-
-  if (!campoPreenchido(form.linkArquivoTrabalho)) {
-    return 'Preencha o link do arquivo do trabalho.';
   }
 
   if (!campoPreenchido(form.dataInicio)) {

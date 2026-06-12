@@ -7,7 +7,8 @@ import {
   ProfessorListItem,
   ProfessorUpdateRequest,
 } from '../models/professor.model';
-import { extrairListaApi } from '../utils/api-list.util';
+import { PageQuery, PageResult } from '../models/page.model';
+import { extrairListaApi, extrairPaginaApi } from '../utils/api-list.util';
 import { AuthService } from './auth.service';
 
 const API_URL = PROFESSORES_URL;
@@ -23,6 +24,35 @@ export class ProfessoresService {
       .pipe(
         map((body) =>
           extrairListaApi(body).map((item) => this.normalizarProfessor(item)),
+        ),
+      );
+  }
+
+  listarPagina(query: PageQuery): Observable<PageResult<ProfessorListItem>> {
+    return this.http
+      .get<unknown>(`${API_URL}?page=${query.page}&size=${query.size}`, {
+        headers: this.auth.getAuthHeaders(),
+      })
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarProfessor(item)),
+        ),
+      );
+  }
+
+  /** Pesquisa por subpalavra do nome (GET /api/professores/pesquisar). */
+  pesquisarPagina(
+    nome: string,
+    query: PageQuery,
+  ): Observable<PageResult<ProfessorListItem>> {
+    return this.http
+      .get<unknown>(
+        `${API_URL}/pesquisar?nome=${encodeURIComponent(nome)}&page=${query.page}&size=${query.size}`,
+        { headers: this.auth.getAuthHeaders() },
+      )
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarProfessor(item)),
         ),
       );
   }

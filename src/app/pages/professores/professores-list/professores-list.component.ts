@@ -1,16 +1,20 @@
 import { Component, ChangeDetectorRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { finalize } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 import { ProfessoresService } from '../../../core/services/professores.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProfessorListItem } from '../../../core/models/professor.model';
+import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
 
 @Component({
   selector: 'app-professores-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule, PaginacaoComponent],
   templateUrl: './professores-list.component.html',
   styleUrl: './professores-list.component.css',
 })
@@ -25,6 +29,35 @@ export class ProfessoresListComponent implements OnInit {
   loading = false;
   errorMessage = '';
   successMessage = '';
+
+  paginacao: PageQuery = { ...PAGINA_INICIAL };
+  totalPages = 0;
+  totalElements = 0;
+  pesquisa = '';
+
+  private readonly pesquisaDigitada$ = new Subject<string>();
+
+  constructor() {
+    // Pesquisa automática: dispara a cada caractere, com pequeno atraso
+    this.pesquisaDigitada$
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe(() => this.aplicarPesquisa());
+  }
+
+  aoDigitarPesquisa(valor: string): void {
+    this.pesquisa = valor;
+    this.pesquisaDigitada$.next(valor.trim());
+  }
+
+  aplicarPesquisa(): void {
+    this.paginacao = { ...this.paginacao, page: 0 };
+    this.carregar();
+  }
+
+  limparPesquisa(): void {
+    this.pesquisa = '';
+    this.aplicarPesquisa();
+  }
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe((params) => {
@@ -57,8 +90,12 @@ export class ProfessoresListComponent implements OnInit {
     this.loading = true;
     this.cdr.detectChanges();
 
-    this.professoresService
-      .listar()
+    const termo = this.pesquisa.trim();
+    const fonte$ = termo
+      ? this.professoresService.pesquisarPagina(termo, this.paginacao)
+      : this.professoresService.listarPagina(this.paginacao);
+
+    fonte$
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -66,8 +103,10 @@ export class ProfessoresListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: (professores) => {
-          this.professores = professores ?? [];
+        next: (pagina) => {
+          this.professores = pagina.itens;
+          this.totalPages = pagina.totalPages;
+          this.totalElements = pagina.totalElements;
         },
         error: (err: HttpErrorResponse) => {
           this.errorMessage = mensagemErroHttp(err, {
@@ -77,6 +116,16 @@ export class ProfessoresListComponent implements OnInit {
           });
         },
       });
+  }
+
+  mudarPagina(page: number): void {
+    this.paginacao = { ...this.paginacao, page };
+    this.carregar();
+  }
+
+  mudarTamanhoPagina(size: number): void {
+    this.paginacao = { page: 0, size };
+    this.carregar();
   }
 
   irParaCadastro(): void {

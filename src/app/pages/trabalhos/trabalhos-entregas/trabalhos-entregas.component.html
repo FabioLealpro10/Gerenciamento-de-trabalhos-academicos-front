@@ -50,14 +50,14 @@
             @for (entrega of entregas; track entrega.id ?? entrega.alunoId) {
               <tr [class.linha-ativa]="entregaSelecionada?.alunoId === entrega.alunoId">
                 <td>{{ entrega.alunoNome ?? '-' }}</td>
-                <td>{{ entrega.dataEntrega ?? '-' }}</td>
+                <td>{{ entrega.dataEntrega | dataBr }}</td>
                 <td>{{ entrega.nota != null ? entrega.nota : '-' }}</td>
                 <td>{{ entrega.feedback?.trim() ? entrega.feedback : '-' }}</td>
                 <td>
-                  @if (entrega.linkArquivo) {
-                    <a [href]="entrega.linkArquivo" target="_blank" rel="noopener noreferrer">
-                      Abrir
-                    </a>
+                  @if (entrega.caminhoArquivoPdf) {
+                    <button type="button" class="ghost" (click)="abrirPdf(entrega)">
+                      Abrir PDF
+                    </button>
                   } @else {
                     -
                   }
@@ -72,6 +72,16 @@
           </tbody>
         </table>
       </div>
+
+      <app-paginacao
+        [page]="paginacao.page"
+        [size]="paginacao.size"
+        [totalPages]="totalPages"
+        [totalElements]="totalElements"
+        [disabled]="loading"
+        (pageChange)="mudarPagina($event)"
+        (sizeChange)="mudarTamanhoPagina($event)"
+      />
     }
   </section>
 

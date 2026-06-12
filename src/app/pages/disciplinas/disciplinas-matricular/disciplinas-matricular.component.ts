@@ -8,12 +8,16 @@ import { AlunosService } from '../../../core/services/alunos.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { UsuarioListItem } from '../../../core/models/aluno.model';
+import { PAGINA_INICIAL } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
+import { SelecaoPesquisaComponent } from '../../../shared/selecao-pesquisa/selecao-pesquisa.component';
+import { OpcaoSelecao } from '../../../shared/selecao-pesquisa/opcao-selecao.model';
 
 @Component({
   selector: 'app-disciplinas-matricular',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DataBrPipe, SelecaoPesquisaComponent],
   templateUrl: './disciplinas-matricular.component.html',
   styleUrl: './disciplinas-matricular.component.css',
 })
@@ -30,16 +34,35 @@ export class DisciplinasMatricularComponent implements OnInit {
   alunoSelecionadoId: number | null = null;
 
   alunosDisponiveis: UsuarioListItem[] = [];
-<<<<<<< HEAD
   alunosMatriculados: UsuarioListItem[] = [];
-=======
-  alunosMatriculados: string[] = [];
->>>>>>> origin/main
 
   loading = false;
   loadingDados = false;
   errorMessage = '';
   successMessage = '';
+  pesquisaMatriculados = '';
+
+  get opcoesAlunos(): OpcaoSelecao[] {
+    return this.alunosDisponiveis.map((aluno) => ({
+      id: aluno.id!,
+      titulo: aluno.nome,
+      subtitulo: aluno.email,
+    }));
+  }
+
+  get alunosMatriculadosFiltrados(): UsuarioListItem[] {
+    const termo = this.pesquisaMatriculados.trim().toLowerCase();
+
+    if (!termo) {
+      return this.alunosMatriculados;
+    }
+
+    return this.alunosMatriculados.filter(
+      (aluno) =>
+        aluno.nome.toLowerCase().includes(termo) ||
+        aluno.email.toLowerCase().includes(termo),
+    );
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -52,7 +75,7 @@ export class DisciplinasMatricularComponent implements OnInit {
     this.carregarDados();
   }
 
-<<<<<<< HEAD
+
   removerMatricula(aluno: UsuarioListItem): void {
     if (!this.disciplinaId || aluno.id == null) {
       return;
@@ -99,8 +122,7 @@ export class DisciplinasMatricularComponent implements OnInit {
       });
   }
 
-=======
->>>>>>> origin/main
+
   matricular(): void {
     this.errorMessage = '';
     this.successMessage = '';
@@ -161,7 +183,7 @@ export class DisciplinasMatricularComponent implements OnInit {
 
     forkJoin({
       disciplina: this.disciplinasService.buscarPorId(this.disciplinaId),
-      alunos: this.alunosService.listar(),
+      alunos: this.alunosService.listarPagina({ ...PAGINA_INICIAL, size: 100 }),
     })
       .pipe(
         finalize(() => {
@@ -172,37 +194,27 @@ export class DisciplinasMatricularComponent implements OnInit {
       .subscribe({
         next: ({ disciplina, alunos }) => {
           this.disciplina = disciplina;
-<<<<<<< HEAD
           const nomesMatriculados = new Set(
             (disciplina.alunosMatriculados ?? []).map((nome) =>
               nome.trim().toLowerCase(),
             ),
           );
 
-          this.alunosMatriculados = (alunos ?? []).filter(
+          const listaAlunos = alunos.itens ?? [];
+          this.alunosMatriculados = listaAlunos.filter(
             (aluno) =>
               aluno.id != null &&
               nomesMatriculados.has(
                 aluno.nome.trim().toLowerCase(),
               ),
-=======
-          this.alunosMatriculados = disciplina.alunosMatriculados ?? [];
-
-          const nomesMatriculados = new Set(
-            this.alunosMatriculados.map((nome) => nome.trim().toLowerCase()),
->>>>>>> origin/main
           );
 
-          this.alunosDisponiveis = (alunos ?? []).filter(
+          this.alunosDisponiveis = listaAlunos.filter(
             (aluno) =>
               aluno.id != null &&
-<<<<<<< HEAD
               !nomesMatriculados.has(
                 aluno.nome.trim().toLowerCase(),
               ),
-=======
-              !nomesMatriculados.has(aluno.nome.trim().toLowerCase()),
->>>>>>> origin/main
           );
         },
         error: (err: HttpErrorResponse) => {

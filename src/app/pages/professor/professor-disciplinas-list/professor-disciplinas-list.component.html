@@ -42,8 +42,8 @@
             @for (disciplina of disciplinas; track disciplina.id ?? disciplina.nome) {
               <tr>
                 <td>{{ disciplina.nome }}</td>
-                <td>{{ disciplina.dataInicio ?? '-' }}</td>
-                <td>{{ disciplina.dataFim ?? '-' }}</td>
+                <td>{{ disciplina.dataInicio | dataBr }}</td>
+                <td>{{ disciplina.dataFim | dataBr }}</td>
                 <td>
                   <button type="button" class="ghost" (click)="verAlunosMatriculados(disciplina)">
                     Ver alunos
@@ -59,6 +59,16 @@
           </tbody>
         </table>
       </div>
+
+      <app-paginacao
+        [page]="paginacao.page"
+        [size]="paginacao.size"
+        [totalPages]="totalPages"
+        [totalElements]="totalElements"
+        [disabled]="loading"
+        (pageChange)="mudarPagina($event)"
+        (sizeChange)="mudarTamanhoPagina($event)"
+      />
     }
   </section>
 </div>

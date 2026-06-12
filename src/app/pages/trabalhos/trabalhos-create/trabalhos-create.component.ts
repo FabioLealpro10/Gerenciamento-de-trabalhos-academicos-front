@@ -15,11 +15,12 @@ import {
 import { TrabalhoListItem } from '../../../core/models/trabalho.model';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-trabalhos-create',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DataBrPipe],
   templateUrl: './trabalhos-create.component.html',
   styleUrl: './trabalhos-create.component.css',
 })
@@ -35,11 +36,16 @@ export class TrabalhosCreateComponent implements OnInit {
   form: TrabalhoFormFields = {
     titulo: '',
     descricao: '',
-    linkArquivoTrabalho: '',
     dataInicio: '',
     dataFim: '',
     disciplinaId: null,
   };
+
+  arquivoSelecionado: File | null = null;
+  nomeArquivo = '';
+  erroArquivo = '';
+  arrastandoArquivo = false;
+  pdfAtualExiste = false;
 
   modoEdicao = false;
   modoProfessor = false;
@@ -69,6 +75,9 @@ export class TrabalhosCreateComponent implements OnInit {
     this.modoProfessor = this.router.url.includes('/professor/');
     this.disciplinaIdRota = this.route.snapshot.paramMap.get('disciplinaId');
 
+    // Data de início capturada automaticamente (hoje); usuário informa só a data final
+    this.form.dataInicio = this.dataHoje();
+
     if (this.disciplinaIdRota) {
       this.form.disciplinaId = Number(this.disciplinaIdRota);
       this.disciplinaRota =
@@ -97,6 +106,13 @@ export class TrabalhosCreateComponent implements OnInit {
       return;
     }
 
+    if (!this.modoEdicao && !this.arquivoSelecionado) {
+      this.errorMessage =
+        'Selecione o arquivo PDF do trabalho (arraste para a área de envio ou clique nela).';
+      this.cdr.detectChanges();
+      return;
+    }
+
     if (!this.authService.getToken()) {
       this.errorMessage =
         'Token não encontrado. Faça logout, faça login novamente e tente de novo.';
@@ -107,18 +123,50 @@ export class TrabalhosCreateComponent implements OnInit {
     this.loading = true;
     this.cdr.detectChanges();
 
-    const payload = {
-      titulo: this.form.titulo.trim(),
-      descricao: this.form.descricao.trim(),
-      linkArquivoTrabalho: this.form.linkArquivoTrabalho.trim(),
-      dataInicio: this.form.dataInicio,
-      dataFim: this.form.dataFim,
-      disciplinaId: this.form.disciplinaId!,
-    };
+
+    const formData = new FormData();
+
+    formData.append(
+      'titulo',
+      this.form.titulo.trim()
+    );
+
+    formData.append(
+      'descricao',
+      this.form.descricao.trim()
+    );
+
+    formData.append(
+      'dataInicio',
+      this.form.dataInicio
+    );
+
+    formData.append(
+      'dataFim',
+      this.form.dataFim
+    );
+
+    formData.append(
+      'disciplinaId',
+      this.form.disciplinaId!.toString()
+    );
+
+    if (this.arquivoSelecionado) {
+      formData.append(
+        'arquivo',
+        this.arquivoSelecionado,
+        this.arquivoSelecionado.name
+      );
+    }
 
     const request$ = this.modoEdicao
-      ? this.trabalhosService.atualizar(this.trabalhoId!, payload)
-      : this.trabalhosService.cadastrar(payload);
+      ? this.trabalhosService.atualizar(
+        this.trabalhoId!,
+        formData
+      )
+      : this.trabalhosService.cadastrar(
+        formData
+      );
 
     request$
       .pipe(
@@ -134,6 +182,12 @@ export class TrabalhosCreateComponent implements OnInit {
           this.router.navigate([destino], { queryParams: { msg } });
         },
         error: (err: HttpErrorResponse) => {
+          console.log('STATUS:', err.status);
+          console.log('MESSAGE:', err.message);
+          console.log('ERROR:', err.error);
+          console.log('URL:', err.url);
+          console.log('COMPLETO:', err);
+
           this.errorMessage = mensagemErroHttp(err, {
             temToken: !!this.authService.getToken(),
             contexto: 'salvar',
@@ -142,6 +196,93 @@ export class TrabalhosCreateComponent implements OnInit {
           });
         },
       });
+  }
+
+  onArquivoSelecionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files?.length) {
+      return;
+    }
+
+    this.processarArquivo(input.files[0]);
+
+    // permite selecionar o mesmo arquivo novamente após remover
+    input.value = '';
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastandoArquivo = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastandoArquivo = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastandoArquivo = false;
+
+    const arquivo = event.dataTransfer?.files?.[0];
+
+    if (!arquivo) {
+      return;
+    }
+
+    this.processarArquivo(arquivo);
+  }
+
+  removerArquivo(): void {
+    this.arquivoSelecionado = null;
+    this.nomeArquivo = '';
+    this.erroArquivo = '';
+  }
+
+  abrirPdfAtual(): void {
+    if (!this.trabalhoId) {
+      return;
+    }
+
+    this.trabalhosService.baixarPdf(this.trabalhoId).subscribe({
+      next: (blob) => {
+        window.open(URL.createObjectURL(blob), '_blank');
+      },
+      error: () => {
+        this.erroArquivo = 'Erro ao abrir o PDF atual do trabalho.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private processarArquivo(arquivo: File): void {
+    this.erroArquivo = '';
+
+    if (arquivo.type !== 'application/pdf') {
+      this.erroArquivo = 'Apenas arquivos PDF são permitidos.';
+      this.arquivoSelecionado = null;
+      this.nomeArquivo = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const tamanhoMaximo = 8 * 1024 * 1024;
+
+    if (arquivo.size > tamanhoMaximo) {
+      this.erroArquivo = 'O arquivo deve ter no máximo 8 MB.';
+      this.arquivoSelecionado = null;
+      this.nomeArquivo = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.arquivoSelecionado = arquivo;
+    this.nomeArquivo = arquivo.name;
+    this.cdr.detectChanges();
   }
 
   private obterDestinoAposSalvar(): string {
@@ -155,10 +296,11 @@ export class TrabalhosCreateComponent implements OnInit {
   }
 
   private preencherFormulario(trabalho: TrabalhoListItem): void {
+    this.pdfAtualExiste = !!trabalho.caminhoArquivoPdf;
+
     this.form = {
       titulo: trabalho.titulo,
       descricao: trabalho.descricao ?? '',
-      linkArquivoTrabalho: trabalho.linkArquivoTrabalho ?? '',
       dataInicio: this.formatarDataInput(trabalho.dataInicio),
       dataFim: this.formatarDataInput(trabalho.dataFim),
       disciplinaId:
@@ -178,6 +320,14 @@ export class TrabalhosCreateComponent implements OnInit {
     );
 
     return disciplina?.id != null ? Number(disciplina.id) : null;
+  }
+
+  private dataHoje(): string {
+    const agora = new Date();
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
   }
 
   private formatarDataInput(data?: string): string {
@@ -200,10 +350,10 @@ export class TrabalhosCreateComponent implements OnInit {
 
     const disciplinas$ = this.modoProfessor
       ? this.professorContext.obterIdProfessor().pipe(
-          switchMap((idProfessor) =>
-            this.disciplinasService.listarPorProfessor(idProfessor),
-          ),
-        )
+        switchMap((idProfessor) =>
+          this.disciplinasService.listarPorProfessor(idProfessor),
+        ),
+      )
       : this.disciplinasService.listar();
 
     disciplinas$

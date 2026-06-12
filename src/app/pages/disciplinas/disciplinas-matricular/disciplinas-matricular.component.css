@@ -122,27 +122,28 @@ button[disabled] {
   flex-wrap: wrap;
 }
 
-label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.selecao-aluno {
   flex: 1;
-  min-width: 240px;
+  min-width: 280px;
 }
 
-label span {
-  font-size: 13px;
-  font-weight: 700;
-  color: #334155;
-  text-transform: uppercase;
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-select {
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  background: #fff;
+.card-header h2 {
+  margin: 0;
+}
+
+.card-header .busca {
+  min-width: 220px;
+  max-width: 320px;
+  flex: 1;
 }
 
 .muted {

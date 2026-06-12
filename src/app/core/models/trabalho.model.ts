@@ -1,19 +1,8 @@
-export interface TrabalhoCreateRequest {
-  titulo: string;
-  descricao: string;
-  linkArquivoTrabalho: string;
-  dataInicio: string;
-  dataFim: string;
-  disciplinaId: number;
-}
-
-export interface TrabalhoUpdateRequest extends TrabalhoCreateRequest {}
-
 export interface TrabalhoListItem {
   id?: number | string;
   titulo: string;
   descricao?: string;
-  linkArquivoTrabalho?: string;
+  caminhoArquivoPdf?: string;
   dataInicio?: string;
   dataFim?: string;
   disciplinaId?: number;
@@ -25,21 +14,9 @@ export interface EntregaCorrigirRequest {
   feedback: string;
 }
 
-export interface EntregaCreateRequest {
-  linkArquivo: string;
-  dataEntrega: string;
-  trabalhoId: number;
-  alunoId: number;
-}
-
-export interface EntregaUpdateRequest {
-  linkArquivo: string;
-  dataEntrega: string;
-}
-
 export interface EntregaListItem {
   id?: number | string;
-  linkArquivo?: string;
+  caminhoArquivoPdf?: string;
   dataEntrega?: string;
   nota?: number;
   feedback?: string;

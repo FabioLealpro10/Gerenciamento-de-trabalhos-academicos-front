@@ -1,0 +1,39 @@
+<div class="paginacao">
+  <div class="info">
+    <span>
+      Página {{ paginaAtualExibicao }} de {{ totalPages }}
+      ({{ totalElements }} {{ totalElements === 1 ? 'item' : 'itens' }})
+    </span>
+  </div>
+
+  <div class="controles">
+    <label class="tamanho">
+      <span>Itens por página</span>
+      <select
+        [ngModel]="size"
+        (ngModelChange)="aoMudarTamanho($event)"
+        [disabled]="disabled"
+        name="tamanhoPagina"
+      >
+        @for (tamanho of tamanhos; track tamanho) {
+        <option [ngValue]="tamanho">{{ tamanho }}</option>
+        }
+      </select>
+    </label>
+
+    <div class="botoes">
+      <button type="button" (click)="irParaPrimeira()" [disabled]="!podeVoltar" title="Primeira página">
+        «
+      </button>
+      <button type="button" (click)="voltar()" [disabled]="!podeVoltar" title="Página anterior">
+        ‹
+      </button>
+      <button type="button" (click)="avancar()" [disabled]="!podeAvancar" title="Próxima página">
+        ›
+      </button>
+      <button type="button" (click)="irParaUltima()" [disabled]="!podeAvancar" title="Última página">
+        »
+      </button>
+    </div>
+  </div>
+</div>

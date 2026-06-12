@@ -28,10 +28,30 @@
       </button>
     </div>
 
+    <div class="busca">
+      <span class="busca-icone" aria-hidden="true"></span>
+      <input
+        [ngModel]="pesquisa"
+        (ngModelChange)="aoDigitarPesquisa($event)"
+        name="pesquisa"
+        type="text"
+        placeholder="Pesquisar professor por nome..."
+        autocomplete="off"
+      />
+      @if (pesquisa) {
+        <button type="button" class="busca-limpar" (click)="limparPesquisa()" title="Limpar pesquisa">
+          ✕
+        </button>
+      }
+    </div>
+
     @if (loading) {
       <p class="muted">Carregando...</p>
     } @else if (professores.length === 0) {
-      <p class="muted">Nenhum professor cadastrado ainda.</p>
+      <p class="muted">
+        @if (pesquisa.trim()) { Nenhum professor encontrado para "{{ pesquisa }}". }
+        @else { Nenhum professor cadastrado ainda. }
+      </p>
     } @else {
       <div class="table-wrap">
         <table>
@@ -67,6 +87,16 @@
           </tbody>
         </table>
       </div>
+
+      <app-paginacao
+        [page]="paginacao.page"
+        [size]="paginacao.size"
+        [totalPages]="totalPages"
+        [totalElements]="totalElements"
+        [disabled]="loading"
+        (pageChange)="mudarPagina($event)"
+        (sizeChange)="mudarTamanhoPagina($event)"
+      />
     }
   </section>
 </div>

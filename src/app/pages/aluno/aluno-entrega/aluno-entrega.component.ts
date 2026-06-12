@@ -2,7 +2,6 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-<<<<<<< HEAD
 import { catchError, finalize, forkJoin, of, switchMap } from 'rxjs';
 import { EntregasService } from '../../../core/services/entregas.service';
 import { AlunoContextService } from '../../../core/services/aluno-context.service';
@@ -10,27 +9,19 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TrabalhosService } from '../../../core/services/trabalhos.service';
 import { DisciplinasService } from '../../../core/services/disciplinas.service';
 import {
-  EntregaCreateRequest,
   EntregaListItem,
-  EntregaUpdateRequest,
   TrabalhoListItem,
 } from '../../../core/models/trabalho.model';
-=======
-import { finalize, switchMap } from 'rxjs';
-import { EntregasService } from '../../../core/services/entregas.service';
-import { AlunoContextService } from '../../../core/services/aluno-context.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { EntregaListItem, TrabalhoListItem } from '../../../core/models/trabalho.model';
->>>>>>> origin/main
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
-import { dataEntregaHoje, formatarDataBr } from '../../../core/utils/date.util';
+import { dataEntregaHoje } from '../../../core/utils/date.util';
 import { entregaFoiCorrigida } from '../../../core/utils/entrega.util';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-aluno-entrega',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, DataBrPipe],
   templateUrl: './aluno-entrega.component.html',
   styleUrl: './aluno-entrega.component.css',
 })
@@ -38,11 +29,8 @@ export class AlunoEntregaComponent implements OnInit {
   private readonly entregasService = inject(EntregasService);
   private readonly alunoContext = inject(AlunoContextService);
   private readonly authService = inject(AuthService);
-<<<<<<< HEAD
   private readonly trabalhosService = inject(TrabalhosService);
   private readonly disciplinasService = inject(DisciplinasService);
-=======
->>>>>>> origin/main
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -54,15 +42,16 @@ export class AlunoEntregaComponent implements OnInit {
   disciplina: DisciplinaListItem | null = null;
   entrega: EntregaListItem | null = null;
 
-  linkArquivo = '';
+  arquivoSelecionado: File | null = null;
+  nomeArquivo = '';
+  erroArquivo = '';
+  arrastandoArquivo = false;
   dataEntregaAutomatica = dataEntregaHoje();
 
   loading = false;
   loadingDados = false;
   errorMessage = '';
   successMessage = '';
-
-  readonly formatarDataBr = formatarDataBr;
 
   get linkVoltar(): string {
     return this.disciplinaId
@@ -75,18 +64,30 @@ export class AlunoEntregaComponent implements OnInit {
   }
 
   get jaEntregou(): boolean {
-<<<<<<< HEAD
     return !!this.entrega?.id;
-=======
-    return this.entrega != null;
->>>>>>> origin/main
+  }
+
+  abrirPdfTrabalho(): void {
+    const id = this.trabalho?.id ?? this.trabalhoId;
+    if (id == null) {
+      return;
+    }
+
+    this.trabalhosService.baixarPdf(id).subscribe({
+      next: (blob) => {
+        window.open(URL.createObjectURL(blob), '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Erro ao abrir o PDF do trabalho.';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   get foiCorrigido(): boolean {
     return entregaFoiCorrigida(this.entrega);
   }
 
-<<<<<<< HEAD
 
   get prazoExpirado(): boolean {
     if (!this.trabalho?.dataFim) {
@@ -120,12 +121,97 @@ export class AlunoEntregaComponent implements OnInit {
     entrega: EntregaListItem | null,
   ): void {
     this.entrega = entrega;
-    this.linkArquivo = entrega?.linkArquivo?.trim() ?? '';
+    this.arquivoSelecionado = null;
+    this.nomeArquivo = '';
+    this.erroArquivo = '';
     this.cdr.detectChanges();
   }
 
-=======
->>>>>>> origin/main
+  abrirPdfEntrega(): void {
+    if (this.entrega?.id == null) {
+      return;
+    }
+
+    this.entregasService.baixarPdf(this.entrega.id).subscribe({
+      next: (blob) => {
+        window.open(URL.createObjectURL(blob), '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Erro ao abrir o PDF da entrega.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  onArquivoSelecionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+
+    if (!input.files?.length) {
+      return;
+    }
+
+    this.processarArquivo(input.files[0]);
+    input.value = '';
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastandoArquivo = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastandoArquivo = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.arrastandoArquivo = false;
+
+    const arquivo = event.dataTransfer?.files?.[0];
+
+    if (!arquivo) {
+      return;
+    }
+
+    this.processarArquivo(arquivo);
+  }
+
+  removerArquivo(): void {
+    this.arquivoSelecionado = null;
+    this.nomeArquivo = '';
+    this.erroArquivo = '';
+  }
+
+  private processarArquivo(arquivo: File): void {
+    this.erroArquivo = '';
+
+    if (arquivo.type !== 'application/pdf') {
+      this.erroArquivo = 'Apenas arquivos PDF são permitidos.';
+      this.arquivoSelecionado = null;
+      this.nomeArquivo = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const tamanhoMaximo = 8 * 1024 * 1024;
+
+    if (arquivo.size > tamanhoMaximo) {
+      this.erroArquivo = 'O arquivo deve ter no máximo 8 MB.';
+      this.arquivoSelecionado = null;
+      this.nomeArquivo = '';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.arquivoSelecionado = arquivo;
+    this.nomeArquivo = arquivo.name;
+    this.cdr.detectChanges();
+  }
+
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
       void this.router.navigate(['/login']);
@@ -159,11 +245,7 @@ export class AlunoEntregaComponent implements OnInit {
       return;
     }
 
-<<<<<<< HEAD
     if (!this.trabalhoId || !this.disciplinaId) {
-=======
-    if (!this.trabalhoId) {
->>>>>>> origin/main
       return;
     }
 
@@ -175,7 +257,6 @@ export class AlunoEntregaComponent implements OnInit {
       .pipe(
         switchMap((idAluno) => {
           this.alunoId = idAluno;
-<<<<<<< HEAD
 
           return forkJoin({
             trabalho: this.trabalhosService
@@ -189,12 +270,6 @@ export class AlunoEntregaComponent implements OnInit {
               this.trabalhoId!,
             ),
           });
-=======
-          return this.entregasService.buscarPorAlunoTrabalho(
-            idAluno,
-            this.trabalhoId!,
-          );
->>>>>>> origin/main
         }),
         finalize(() => {
           this.loadingDados = false;
@@ -202,7 +277,6 @@ export class AlunoEntregaComponent implements OnInit {
         }),
       )
       .subscribe({
-<<<<<<< HEAD
         next: ({ trabalho, disciplina, entrega }) => {
           if (trabalho) {
             this.trabalho = trabalho;
@@ -213,13 +287,6 @@ export class AlunoEntregaComponent implements OnInit {
           }
 
           this.aplicarEntregaCarregada(entrega);
-=======
-        next: (entrega) => {
-          this.entrega = entrega;
-          if (entrega?.linkArquivo) {
-            this.linkArquivo = entrega.linkArquivo;
-          }
->>>>>>> origin/main
         },
         error: (err: unknown) => {
           if (err instanceof Error && !(err instanceof HttpErrorResponse)) {
@@ -240,18 +307,13 @@ export class AlunoEntregaComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-<<<<<<< HEAD
     if (this.foiCorrigido) {
-=======
-    if (this.jaEntregou && this.foiCorrigido) {
->>>>>>> origin/main
       this.errorMessage =
         'Esta entrega já foi corrigida pelo professor e não pode mais ser alterada.';
       this.cdr.detectChanges();
       return;
     }
 
-<<<<<<< HEAD
     if (this.prazoExpirado) {
       this.errorMessage =
         'O prazo para entrega deste trabalho já foi encerrado.';
@@ -259,13 +321,10 @@ export class AlunoEntregaComponent implements OnInit {
       return;
     }
 
-    const link = this.linkArquivo.trim();
-
-    if (!link) {
-=======
-    if (!this.linkArquivo.trim()) {
->>>>>>> origin/main
-      this.errorMessage = 'Informe o link do arquivo da entrega.';
+    if (!this.arquivoSelecionado) {
+      this.errorMessage = this.jaEntregou
+        ? 'Selecione o novo PDF que vai substituir a sua entrega (arraste para a área de envio ou clique nela).'
+        : 'Selecione o arquivo PDF da entrega (arraste para a área de envio ou clique nela).';
       this.cdr.detectChanges();
       return;
     }
@@ -284,17 +343,22 @@ export class AlunoEntregaComponent implements OnInit {
     }
 
     this.loading = true;
-<<<<<<< HEAD
 
     // Formato: YYYY-MM-DD
     const dataEntrega = new Date().toISOString().split('T')[0];
 
-    const payloadAtualizacao: EntregaUpdateRequest = {
-      linkArquivo: link,
-      dataEntrega: dataEntrega,
-    };
-
     this.cdr.detectChanges();
+
+    const montarFormDataAtualizacao = () => {
+      const dados = new FormData();
+      dados.append('dataEntrega', dataEntrega);
+      dados.append(
+        'arquivo',
+        this.arquivoSelecionado!,
+        this.arquivoSelecionado!.name,
+      );
+      return dados;
+    };
 
     const salvarComId = (idAluno: number) => {
       const trabalhoIdNum = Number(this.trabalhoId);
@@ -306,49 +370,23 @@ export class AlunoEntregaComponent implements OnInit {
         return;
       }
 
-      const payloadCadastro: EntregaCreateRequest = {
-        linkArquivo: link,
-        dataEntrega: dataEntrega,
-        trabalhoId: trabalhoIdNum,
-        alunoId: idAluno,
-      };
-
-      console.log('Já entregou:', this.jaEntregou);
-
-      console.log(
-        'Payload:',
-        this.jaEntregou ? payloadAtualizacao : payloadCadastro,
+      const dadosCadastro = new FormData();
+      dadosCadastro.append('trabalhoId', String(trabalhoIdNum));
+      dadosCadastro.append('alunoId', String(idAluno));
+      dadosCadastro.append('dataEntrega', dataEntrega);
+      dadosCadastro.append(
+        'arquivo',
+        this.arquivoSelecionado!,
+        this.arquivoSelecionado!.name,
       );
 
       const request$ = this.jaEntregou
         ? this.entregasService.atualizar(
           idAluno,
           trabalhoIdNum,
-          payloadAtualizacao,
+          montarFormDataAtualizacao(),
         )
-        : this.entregasService.cadastrar(payloadCadastro);
-=======
-    this.dataEntregaAutomatica = dataEntregaHoje();
-    this.cdr.detectChanges();
-
-    const payloadAtualizacao = {
-      linkArquivo: this.linkArquivo.trim(),
-      dataEntrega: this.dataEntregaAutomatica,
-    };
-
-    const salvarComId = (idAluno: number) => {
-      const request$ = this.jaEntregou
-        ? this.entregasService.atualizar(
-            idAluno,
-            this.trabalhoId!,
-            payloadAtualizacao,
-          )
-        : this.entregasService.cadastrar({
-            ...payloadAtualizacao,
-            trabalhoId: Number(this.trabalhoId),
-            alunoId: idAluno,
-          });
->>>>>>> origin/main
+        : this.entregasService.cadastrar(dadosCadastro);
 
       request$
         .pipe(
@@ -358,7 +396,6 @@ export class AlunoEntregaComponent implements OnInit {
           }),
         )
         .subscribe({
-<<<<<<< HEAD
           next: (entregaSalva) => {
 
             const estavaEditando = this.jaEntregou;
@@ -374,15 +411,6 @@ export class AlunoEntregaComponent implements OnInit {
             console.error('Status:', err.status);
             console.error('Erro:', err.error);
 
-=======
-          next: () => {
-            this.successMessage = this.jaEntregou
-              ? 'Entrega atualizada com sucesso!'
-              : 'Entrega registrada com sucesso!';
-            this.carregar();
-          },
-          error: (err: HttpErrorResponse) => {
->>>>>>> origin/main
             if (err.status === 403) {
               this.errorMessage =
                 'Esta entrega já foi corrigida pelo professor e não pode mais ser alterada.';
@@ -391,12 +419,11 @@ export class AlunoEntregaComponent implements OnInit {
             }
 
             if (err.status === 409 && !this.jaEntregou) {
-<<<<<<< HEAD
               this.entregasService
                 .atualizar(
                   idAluno,
                   trabalhoIdNum,
-                  payloadAtualizacao,
+                  montarFormDataAtualizacao(),
                 )
                 .subscribe({
                   next: (entregaSalva) => {
@@ -418,10 +445,6 @@ export class AlunoEntregaComponent implements OnInit {
                   },
                 });
 
-=======
-              this.errorMessage = 'Este trabalho já foi entregue.';
-              this.carregar();
->>>>>>> origin/main
               return;
             }
 
@@ -444,23 +467,14 @@ export class AlunoEntregaComponent implements OnInit {
         this.alunoId = idAluno;
         salvarComId(idAluno);
       },
-<<<<<<< HEAD
 
       error: (err: unknown) => {
         this.loading = false;
 
-=======
-      error: (err: unknown) => {
-        this.loading = false;
->>>>>>> origin/main
         this.errorMessage =
           err instanceof Error
             ? err.message
             : 'Não foi possível identificar o aluno logado.';
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/main
         this.cdr.detectChanges();
       },
     });

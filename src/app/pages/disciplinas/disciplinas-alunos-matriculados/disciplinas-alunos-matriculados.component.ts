@@ -6,11 +6,12 @@ import { DisciplinasService } from '../../../core/services/disciplinas.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-disciplinas-alunos-matriculados',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, DataBrPipe],
   templateUrl: './disciplinas-alunos-matriculados.component.html',
   styleUrl: './disciplinas-alunos-matriculados.component.css',
 })

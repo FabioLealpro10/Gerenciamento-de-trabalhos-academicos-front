@@ -4,11 +4,10 @@ import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { ENTREGAS_URL } from '../config/api.config';
 import {
   EntregaCorrigirRequest,
-  EntregaCreateRequest,
   EntregaListItem,
-  EntregaUpdateRequest,
 } from '../models/trabalho.model';
-import { extrairListaApi } from '../utils/api-list.util';
+import { PageQuery, PageResult } from '../models/page.model';
+import { extrairListaApi, extrairPaginaApi } from '../utils/api-list.util';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -26,21 +25,32 @@ export class EntregasService {
       );
   }
 
+  listarPorTrabalhoPagina(
+    trabalhoId: number | string,
+    query: PageQuery,
+  ): Observable<PageResult<EntregaListItem>> {
+    return this.http
+      .get<unknown>(
+        `${ENTREGAS_URL}/trabalho/${trabalhoId}?page=${query.page}&size=${query.size}`,
+        this.auth.getAuthOptions(),
+      )
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarEntrega(item)),
+        ),
+      );
+  }
+
   buscarPorAlunoTrabalho(
     alunoId: number | string,
     trabalhoId: number | string,
   ): Observable<EntregaListItem | null> {
     return this.http
-<<<<<<< HEAD
       .get<unknown>(
-=======
-      .get<Record<string, unknown>>(
->>>>>>> origin/main
         `${ENTREGAS_URL}/aluno/${alunoId}/trabalho/${trabalhoId}`,
         this.auth.getAuthOptions(),
       )
       .pipe(
-<<<<<<< HEAD
         map((body) => {
           if (body == null || typeof body !== 'object') {
             return null;
@@ -48,9 +58,6 @@ export class EntregasService {
 
           return this.normalizarEntrega(body as Record<string, unknown>);
         }),
-=======
-        map((body) => this.normalizarEntrega(body)),
->>>>>>> origin/main
         catchError((err: HttpErrorResponse) => {
           if (err.status === 404) {
             return of(null);
@@ -60,72 +67,42 @@ export class EntregasService {
       );
   }
 
-<<<<<<< HEAD
-  cadastrar(payload: EntregaCreateRequest): Observable<EntregaListItem> {
+  /** Registra a entrega com o PDF (multipart: trabalhoId, alunoId, dataEntrega, arquivo). */
+  cadastrar(dados: FormData): Observable<EntregaListItem> {
     return this.http
-      .post<unknown>(ENTREGAS_URL, payload, this.auth.getAuthOptions())
+      .post<unknown>(ENTREGAS_URL, dados, this.auth.getAuthOptions())
       .pipe(
-        map((body) => {
-          if (body != null && typeof body === 'object') {
-            return this.normalizarEntrega(body as Record<string, unknown>);
-          }
-
-          return {
-            linkArquivo: payload.linkArquivo,
-            dataEntrega: payload.dataEntrega,
-            trabalhoId: payload.trabalhoId,
-            alunoId: payload.alunoId,
-          };
-        }),
+        map((body) =>
+          this.normalizarEntrega((body ?? {}) as Record<string, unknown>),
+        ),
       );
-=======
-  cadastrar(payload: EntregaCreateRequest): Observable<unknown> {
-    const headers = this.auth
-      .getAuthHeaders()
-      .set('Content-Type', 'application/json');
-
-    return this.http.post(ENTREGAS_URL, payload, { headers });
->>>>>>> origin/main
   }
 
+  /** Atualiza a entrega; o arquivo é opcional (mantém o PDF atual se não enviado). */
   atualizar(
     alunoId: number | string,
     trabalhoId: number | string,
-    payload: EntregaUpdateRequest,
-<<<<<<< HEAD
+    dados: FormData,
   ): Observable<EntregaListItem> {
     return this.http
       .put<unknown>(
         `${ENTREGAS_URL}/aluno/${alunoId}/trabalho/${trabalhoId}`,
-        payload,
+        dados,
         this.auth.getAuthOptions(),
       )
       .pipe(
-        map((body) => {
-          if (body != null && typeof body === 'object') {
-            return this.normalizarEntrega(body as Record<string, unknown>);
-          }
-
-          return {
-            linkArquivo: payload.linkArquivo,
-            dataEntrega: payload.dataEntrega,
-            trabalhoId: Number(trabalhoId),
-            alunoId: Number(alunoId),
-          };
-        }),
+        map((body) =>
+          this.normalizarEntrega((body ?? {}) as Record<string, unknown>),
+        ),
       );
-=======
-  ): Observable<unknown> {
-    const headers = this.auth
-      .getAuthHeaders()
-      .set('Content-Type', 'application/json');
+  }
 
-    return this.http.put(
-      `${ENTREGAS_URL}/aluno/${alunoId}/trabalho/${trabalhoId}`,
-      payload,
-      { headers },
-    );
->>>>>>> origin/main
+  /** Baixa o PDF da entrega como blob (a rota exige o token no header). */
+  baixarPdf(id: number | string): Observable<Blob> {
+    return this.http.get(`${ENTREGAS_URL}/${id}/pdf`, {
+      headers: this.auth.getAuthHeaders(),
+      responseType: 'blob',
+    });
   }
 
   corrigir(
@@ -133,21 +110,10 @@ export class EntregasService {
     alunoId: number | string,
     payload: EntregaCorrigirRequest,
   ): Observable<unknown> {
-<<<<<<< HEAD
     return this.http.patch(
       `${ENTREGAS_URL}/trabalho/${trabalhoId}/aluno/${alunoId}/corrigir`,
       payload,
       this.auth.getAuthOptions(),
-=======
-    const headers = this.auth
-      .getAuthHeaders()
-      .set('Content-Type', 'application/json');
-
-    return this.http.patch(
-      `${ENTREGAS_URL}/trabalho/${trabalhoId}/aluno/${alunoId}/corrigir`,
-      payload,
-      { headers },
->>>>>>> origin/main
     );
   }
 
@@ -156,8 +122,10 @@ export class EntregasService {
 
     return {
       id: id as number | string | undefined,
-      linkArquivo:
-        item['linkArquivo'] != null ? String(item['linkArquivo']) : undefined,
+      caminhoArquivoPdf:
+        item['caminhoArquivoPdf'] != null
+          ? String(item['caminhoArquivoPdf'])
+          : undefined,
       dataEntrega:
         item['dataEntrega'] != null ? String(item['dataEntrega']) : undefined,
       nota: item['nota'] != null ? Number(item['nota']) : undefined,

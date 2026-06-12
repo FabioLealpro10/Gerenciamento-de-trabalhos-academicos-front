@@ -1,17 +1,20 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { finalize, map } from 'rxjs';
+import { finalize } from 'rxjs';
 import { TrabalhosService } from '../../../core/services/trabalhos.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TrabalhoListItem } from '../../../core/models/trabalho.model';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
+import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-professor-trabalhos-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PaginacaoComponent, DataBrPipe],
   templateUrl: './professor-trabalhos-list.component.html',
   styleUrl: './professor-trabalhos-list.component.css',
 })
@@ -28,6 +31,10 @@ export class ProfessorTrabalhosListComponent implements OnInit {
   loading = false;
   errorMessage = '';
   successMessage = '';
+
+  paginacao: PageQuery = { ...PAGINA_INICIAL };
+  totalPages = 0;
+  totalElements = 0;
 
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
@@ -84,21 +91,18 @@ export class ProfessorTrabalhosListComponent implements OnInit {
     this.cdr.detectChanges();
 
     this.trabalhosService
-      .listar()
+      .listarPorDisciplinaPagina(this.disciplinaId, this.paginacao)
       .pipe(
-        map((trabalhos) =>
-          (trabalhos ?? []).filter(
-            (t) => Number(t.disciplinaId) === Number(this.disciplinaId),
-          ),
-        ),
         finalize(() => {
           this.loading = false;
           this.cdr.detectChanges();
         }),
       )
       .subscribe({
-        next: (trabalhos) => {
-          this.trabalhos = trabalhos;
+        next: (pagina) => {
+          this.trabalhos = pagina.itens;
+          this.totalPages = pagina.totalPages;
+          this.totalElements = pagina.totalElements;
         },
         error: (err: HttpErrorResponse) => {
           this.errorMessage = mensagemErroHttp(err, {
@@ -108,6 +112,16 @@ export class ProfessorTrabalhosListComponent implements OnInit {
           });
         },
       });
+  }
+
+  mudarPagina(page: number): void {
+    this.paginacao = { ...this.paginacao, page };
+    this.carregar();
+  }
+
+  mudarTamanhoPagina(size: number): void {
+    this.paginacao = { page: 0, size };
+    this.carregar();
   }
 
   verAlunosMatriculados(): void {
@@ -190,6 +204,22 @@ export class ProfessorTrabalhosListComponent implements OnInit {
           });
         },
       });
+  }
+
+  abrirPdf(trabalho: TrabalhoListItem): void {
+    if (trabalho.id == null) {
+      return;
+    }
+
+    this.trabalhosService.baixarPdf(trabalho.id).subscribe({
+      next: (blob) => {
+        window.open(URL.createObjectURL(blob), '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Erro ao abrir o PDF do trabalho.';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   verEntregas(trabalho: TrabalhoListItem): void {

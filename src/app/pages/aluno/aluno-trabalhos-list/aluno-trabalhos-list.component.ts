@@ -6,12 +6,15 @@ import { TrabalhosService } from '../../../core/services/trabalhos.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TrabalhoListItem } from '../../../core/models/trabalho.model';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
+import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-aluno-trabalhos-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PaginacaoComponent, DataBrPipe],
   templateUrl: './aluno-trabalhos-list.component.html',
   styleUrl: './aluno-trabalhos-list.component.css',
 })
@@ -27,6 +30,10 @@ export class AlunoTrabalhosListComponent implements OnInit {
   trabalhos: TrabalhoListItem[] = [];
   loading = false;
   errorMessage = '';
+
+  paginacao: PageQuery = { ...PAGINA_INICIAL };
+  totalPages = 0;
+  totalElements = 0;
 
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
@@ -64,7 +71,7 @@ export class AlunoTrabalhosListComponent implements OnInit {
     this.cdr.detectChanges();
 
     this.trabalhosService
-      .listarPorDisciplina(this.disciplinaId)
+      .listarPorDisciplinaPagina(this.disciplinaId, this.paginacao)
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -72,8 +79,10 @@ export class AlunoTrabalhosListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: (trabalhos) => {
-          this.trabalhos = trabalhos ?? [];
+        next: (pagina) => {
+          this.trabalhos = pagina.itens;
+          this.totalPages = pagina.totalPages;
+          this.totalElements = pagina.totalElements;
         },
         error: (err: HttpErrorResponse) => {
           this.errorMessage = mensagemErroHttp(err, {
@@ -83,6 +92,32 @@ export class AlunoTrabalhosListComponent implements OnInit {
           });
         },
       });
+  }
+
+  mudarPagina(page: number): void {
+    this.paginacao = { ...this.paginacao, page };
+    this.carregar();
+  }
+
+  mudarTamanhoPagina(size: number): void {
+    this.paginacao = { page: 0, size };
+    this.carregar();
+  }
+
+  abrirPdf(trabalho: TrabalhoListItem): void {
+    if (trabalho.id == null) {
+      return;
+    }
+
+    this.trabalhosService.baixarPdf(trabalho.id).subscribe({
+      next: (blob) => {
+        window.open(URL.createObjectURL(blob), '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Erro ao abrir o PDF do trabalho.';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   abrirEntrega(trabalho: TrabalhoListItem): void {

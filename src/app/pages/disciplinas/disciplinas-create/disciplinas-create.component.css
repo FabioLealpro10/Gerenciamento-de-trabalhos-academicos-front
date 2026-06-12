@@ -114,6 +114,10 @@ select:focus {
   gap: 14px;
 }
 
+.full {
+  grid-column: 1 / -1;
+}
+
 .footer {
   margin-top: 18px;
   display: flex;

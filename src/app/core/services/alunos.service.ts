@@ -7,7 +7,8 @@ import {
   AlunoUpdateRequest,
   UsuarioListItem,
 } from '../models/aluno.model';
-import { extrairListaApi } from '../utils/api-list.util';
+import { PageQuery, PageResult } from '../models/page.model';
+import { extrairListaApi, extrairPaginaApi } from '../utils/api-list.util';
 import { AuthService } from './auth.service';
 
 const API_URL = ALUNOS_URL;
@@ -23,6 +24,35 @@ export class AlunosService {
       .pipe(
         map((body) =>
           extrairListaApi(body).map((item) => this.normalizarUsuario(item)),
+        ),
+      );
+  }
+
+  listarPagina(query: PageQuery): Observable<PageResult<UsuarioListItem>> {
+    return this.http
+      .get<unknown>(`${API_URL}?page=${query.page}&size=${query.size}`, {
+        headers: this.auth.getAuthHeaders(),
+      })
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarUsuario(item)),
+        ),
+      );
+  }
+
+  /** Pesquisa por subpalavra do nome (GET /alunos/pesquisar). */
+  pesquisarPagina(
+    nome: string,
+    query: PageQuery,
+  ): Observable<PageResult<UsuarioListItem>> {
+    return this.http
+      .get<unknown>(
+        `${API_URL}/pesquisar?nome=${encodeURIComponent(nome)}&page=${query.page}&size=${query.size}`,
+        { headers: this.auth.getAuthHeaders() },
+      )
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarUsuario(item)),
         ),
       );
   }

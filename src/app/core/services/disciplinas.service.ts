@@ -8,7 +8,8 @@ import {
   DisciplinaUpdateRequest,
   MatriculaRequest,
 } from '../models/disciplina.model';
-import { extrairListaApi } from '../utils/api-list.util';
+import { PageQuery, PageResult } from '../models/page.model';
+import { extrairListaApi, extrairPaginaApi } from '../utils/api-list.util';
 import { AuthService } from './auth.service';
 
 const API_URL = DISCIPLINAS_URL;
@@ -46,6 +47,68 @@ export class DisciplinasService {
       .pipe(
         map((body) =>
           extrairListaApi(body).map((item) => this.normalizarDisciplina(item)),
+        ),
+      );
+  }
+
+  listarPagina(query: PageQuery): Observable<PageResult<DisciplinaListItem>> {
+    return this.http
+      .get<unknown>(
+        `${API_URL}?page=${query.page}&size=${query.size}`,
+        this.auth.getAuthOptions(),
+      )
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarDisciplina(item)),
+        ),
+      );
+  }
+
+  /** Pesquisa por subpalavra do nome (GET /disciplinas/pesquisar). */
+  pesquisarPagina(
+    nome: string,
+    query: PageQuery,
+  ): Observable<PageResult<DisciplinaListItem>> {
+    return this.http
+      .get<unknown>(
+        `${API_URL}/pesquisar?nome=${encodeURIComponent(nome)}&page=${query.page}&size=${query.size}`,
+        this.auth.getAuthOptions(),
+      )
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarDisciplina(item)),
+        ),
+      );
+  }
+
+  listarPorProfessorPagina(
+    idProfessor: number | string,
+    query: PageQuery,
+  ): Observable<PageResult<DisciplinaListItem>> {
+    return this.http
+      .get<unknown>(
+        `${API_URL}/professor/${idProfessor}?page=${query.page}&size=${query.size}`,
+        this.auth.getAuthOptions(),
+      )
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarDisciplina(item)),
+        ),
+      );
+  }
+
+  listarPorAlunoPagina(
+    idAluno: number | string,
+    query: PageQuery,
+  ): Observable<PageResult<DisciplinaListItem>> {
+    return this.http
+      .get<unknown>(
+        `${API_URL}/aluno/${idAluno}?page=${query.page}&size=${query.size}`,
+        this.auth.getAuthOptions(),
+      )
+      .pipe(
+        map((body) =>
+          extrairPaginaApi(body, (item) => this.normalizarDisciplina(item)),
         ),
       );
   }
@@ -132,7 +195,6 @@ export class DisciplinasService {
       alunosMatriculados,
     };
   }
-<<<<<<< HEAD
   desmatricular(
     alunoId: number | string,
     disciplinaId: number | string,
@@ -144,6 +206,4 @@ export class DisciplinasService {
       },
     );
   }
-=======
->>>>>>> origin/main
 }

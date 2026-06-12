@@ -6,12 +6,15 @@ import { DisciplinasService } from '../../../core/services/disciplinas.service';
 import { ProfessorContextService } from '../../../core/services/professor-context.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
+import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-professor-disciplinas-list',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, PaginacaoComponent, DataBrPipe],
   templateUrl: './professor-disciplinas-list.component.html',
   styleUrl: './professor-disciplinas-list.component.css',
 })
@@ -25,6 +28,10 @@ export class ProfessorDisciplinasListComponent implements OnInit {
   disciplinas: DisciplinaListItem[] = [];
   loading = false;
   errorMessage = '';
+
+  paginacao: PageQuery = { ...PAGINA_INICIAL };
+  totalPages = 0;
+  totalElements = 0;
 
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {
@@ -52,7 +59,10 @@ export class ProfessorDisciplinasListComponent implements OnInit {
       .obterIdProfessor()
       .pipe(
         switchMap((idProfessor) =>
-          this.disciplinasService.listarPorProfessor(idProfessor),
+          this.disciplinasService.listarPorProfessorPagina(
+            idProfessor,
+            this.paginacao,
+          ),
         ),
         finalize(() => {
           this.loading = false;
@@ -60,8 +70,10 @@ export class ProfessorDisciplinasListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: (disciplinas) => {
-          this.disciplinas = disciplinas ?? [];
+        next: (pagina) => {
+          this.disciplinas = pagina.itens;
+          this.totalPages = pagina.totalPages;
+          this.totalElements = pagina.totalElements;
         },
         error: (err: unknown) => {
           if (err instanceof Error && !(err instanceof HttpErrorResponse)) {
@@ -76,6 +88,16 @@ export class ProfessorDisciplinasListComponent implements OnInit {
           });
         },
       });
+  }
+
+  mudarPagina(page: number): void {
+    this.paginacao = { ...this.paginacao, page };
+    this.carregar();
+  }
+
+  mudarTamanhoPagina(size: number): void {
+    this.paginacao = { page: 0, size };
+    this.carregar();
   }
 
   verAlunosMatriculados(disciplina: DisciplinaListItem): void {

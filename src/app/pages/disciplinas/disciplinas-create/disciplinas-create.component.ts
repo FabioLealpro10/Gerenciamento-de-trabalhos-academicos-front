@@ -13,12 +13,15 @@ import {
 } from '../../../core/utils/disciplina-form.validation';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { ProfessorListItem } from '../../../core/models/professor.model';
+import { PAGINA_INICIAL } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { SelecaoPesquisaComponent } from '../../../shared/selecao-pesquisa/selecao-pesquisa.component';
+import { OpcaoSelecao } from '../../../shared/selecao-pesquisa/opcao-selecao.model';
 
 @Component({
   selector: 'app-disciplinas-create',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, SelecaoPesquisaComponent],
   templateUrl: './disciplinas-create.component.html',
   styleUrl: './disciplinas-create.component.css',
 })
@@ -43,6 +46,14 @@ export class DisciplinasCreateComponent implements OnInit {
   loading = false;
   loadingProfessores = false;
   errorMessage = '';
+
+  get opcoesProfessores(): OpcaoSelecao[] {
+    return this.professores.map((professor) => ({
+      id: professor.id!,
+      titulo: professor.nome,
+      subtitulo: professor.email,
+    }));
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -152,7 +163,7 @@ export class DisciplinasCreateComponent implements OnInit {
     this.cdr.detectChanges();
 
     this.professoresService
-      .listar()
+      .listarPagina({ ...PAGINA_INICIAL, size: 100 })
       .pipe(
         finalize(() => {
           this.loadingProfessores = false;
@@ -160,8 +171,8 @@ export class DisciplinasCreateComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: (professores) => {
-          this.professores = professores.filter((p) => p.id != null);
+        next: (pagina) => {
+          this.professores = pagina.itens.filter((p) => p.id != null);
 
           if (this.modoEdicao && disciplinaId) {
             const disciplina = history.state?.['disciplina'] as

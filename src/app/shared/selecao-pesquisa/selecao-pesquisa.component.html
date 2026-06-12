@@ -1,0 +1,52 @@
+<div class="selecao-pesquisa">
+  @if (rotulo) {
+  <span class="rotulo">{{ rotulo }}</span>
+  }
+
+  @if (opcaoSelecionada) {
+  <div class="selecionado">
+    <div>
+      <strong>{{ opcaoSelecionada.titulo }}</strong>
+      @if (opcaoSelecionada.subtitulo) {
+      <small>{{ opcaoSelecionada.subtitulo }}</small>
+      }
+    </div>
+    @if (!disabled) {
+    <button type="button" class="limpar" (click)="limparSelecao()" title="Trocar seleção">
+      Trocar
+    </button>
+    }
+  </div>
+  } @else {
+  <div class="campo">
+    <span class="icone" aria-hidden="true"></span>
+    <input
+      [(ngModel)]="pesquisa"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      (focus)="abrirLista()"
+      (blur)="fecharLista()"
+      autocomplete="off"
+    />
+  </div>
+
+  @if (listaAberta) {
+  <ul class="resultados">
+    @if (opcoesFiltradas.length === 0) {
+    <li class="vazio">Nenhum resultado encontrado.</li>
+    } @else {
+    @for (opcao of opcoesFiltradas; track opcao.id) {
+    <li>
+      <button type="button" (mousedown)="selecionar(opcao)">
+        <span>{{ opcao.titulo }}</span>
+        @if (opcao.subtitulo) {
+        <small>{{ opcao.subtitulo }}</small>
+        }
+      </button>
+    </li>
+    }
+    }
+  </ul>
+  }
+  }
+</div>

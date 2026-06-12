@@ -9,12 +9,15 @@ import {
   EntregaListItem,
   TrabalhoListItem,
 } from '../../../core/models/trabalho.model';
+import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
+import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 
 @Component({
   selector: 'app-trabalhos-entregas',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, PaginacaoComponent, DataBrPipe],
   templateUrl: './trabalhos-entregas.component.html',
   styleUrl: './trabalhos-entregas.component.css',
 })
@@ -39,6 +42,10 @@ export class TrabalhosEntregasComponent implements OnInit {
   loadingCorrecao = false;
   errorMessage = '';
   successMessage = '';
+
+  paginacao: PageQuery = { ...PAGINA_INICIAL };
+  totalPages = 0;
+  totalElements = 0;
 
   get linkVoltar(): string {
     if (this.modoProfessor && this.disciplinaId) {
@@ -90,7 +97,7 @@ export class TrabalhosEntregasComponent implements OnInit {
     this.cdr.detectChanges();
 
     this.entregasService
-      .listarPorTrabalho(this.trabalhoId)
+      .listarPorTrabalhoPagina(this.trabalhoId, this.paginacao)
       .pipe(
         finalize(() => {
           this.loading = false;
@@ -98,8 +105,10 @@ export class TrabalhosEntregasComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: (entregas) => {
-          this.entregas = entregas ?? [];
+        next: (pagina) => {
+          this.entregas = pagina.itens;
+          this.totalPages = pagina.totalPages;
+          this.totalElements = pagina.totalElements;
           if (!this.trabalho && this.entregas.length > 0) {
             const primeira = this.entregas[0];
             this.trabalho = {
@@ -127,6 +136,32 @@ export class TrabalhosEntregasComponent implements OnInit {
           });
         },
       });
+  }
+
+  mudarPagina(page: number): void {
+    this.paginacao = { ...this.paginacao, page };
+    this.carregar();
+  }
+
+  mudarTamanhoPagina(size: number): void {
+    this.paginacao = { page: 0, size };
+    this.carregar();
+  }
+
+  abrirPdf(entrega: EntregaListItem): void {
+    if (entrega.id == null) {
+      return;
+    }
+
+    this.entregasService.baixarPdf(entrega.id).subscribe({
+      next: (blob) => {
+        window.open(URL.createObjectURL(blob), '_blank');
+      },
+      error: () => {
+        this.errorMessage = 'Erro ao abrir o PDF da entrega.';
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   abrirCorrecao(entrega: EntregaListItem, limparMensagens = true): void {

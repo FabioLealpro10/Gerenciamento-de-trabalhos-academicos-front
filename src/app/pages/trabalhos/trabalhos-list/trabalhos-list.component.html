@@ -28,10 +28,30 @@
       </button>
     </div>
 
+    <div class="busca">
+      <span class="busca-icone" aria-hidden="true"></span>
+      <input
+        [ngModel]="pesquisa"
+        (ngModelChange)="aoDigitarPesquisa($event)"
+        name="pesquisa"
+        type="text"
+        placeholder="Pesquisar trabalho por título..."
+        autocomplete="off"
+      />
+      @if (pesquisa) {
+        <button type="button" class="busca-limpar" (click)="limparPesquisa()" title="Limpar pesquisa">
+          ✕
+        </button>
+      }
+    </div>
+
     @if (loading) {
       <p class="muted">Carregando...</p>
     } @else if (trabalhos.length === 0) {
-      <p class="muted">Nenhum trabalho cadastrado ainda.</p>
+      <p class="muted">
+        @if (pesquisa.trim()) { Nenhum trabalho encontrado para "{{ pesquisa }}". }
+        @else { Nenhum trabalho cadastrado ainda. }
+      </p>
     } @else {
       <div class="table-wrap">
         <table>
@@ -56,17 +76,13 @@
                   }
                 </td>
                 <td>{{ trabalho.disciplinaNome ?? '-' }}</td>
-                <td>{{ trabalho.dataInicio ?? '-' }}</td>
-                <td>{{ trabalho.dataFim ?? '-' }}</td>
+                <td>{{ trabalho.dataInicio | dataBr }}</td>
+                <td>{{ trabalho.dataFim | dataBr }}</td>
                 <td>
-                  @if (trabalho.linkArquivoTrabalho) {
-                    <a
-                      [href]="trabalho.linkArquivoTrabalho"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Abrir
-                    </a>
+                  @if (trabalho.caminhoArquivoPdf) {
+                    <button type="button" class="ghost" (click)="abrirPdf(trabalho)">
+                      Abrir PDF
+                    </button>
                   } @else {
                     -
                   }
@@ -94,6 +110,16 @@
           </tbody>
         </table>
       </div>
+
+      <app-paginacao
+        [page]="paginacao.page"
+        [size]="paginacao.size"
+        [totalPages]="totalPages"
+        [totalElements]="totalElements"
+        [disabled]="loading"
+        (pageChange)="mudarPagina($event)"
+        (sizeChange)="mudarTamanhoPagina($event)"
+      />
     }
   </section>
 </div>

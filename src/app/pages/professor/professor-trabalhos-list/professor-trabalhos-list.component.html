@@ -58,17 +58,13 @@
                     <p class="descricao">{{ trabalho.descricao }}</p>
                   }
                 </td>
-                <td>{{ trabalho.dataInicio ?? '-' }}</td>
-                <td>{{ trabalho.dataFim ?? '-' }}</td>
+                <td>{{ trabalho.dataInicio | dataBr }}</td>
+                <td>{{ trabalho.dataFim | dataBr }}</td>
                 <td>
-                  @if (trabalho.linkArquivoTrabalho) {
-                    <a
-                      [href]="trabalho.linkArquivoTrabalho"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Abrir
-                    </a>
+                  @if (trabalho.caminhoArquivoPdf) {
+                    <button type="button" class="ghost" (click)="abrirPdf(trabalho)">
+                      Abrir PDF
+                    </button>
                   } @else {
                     -
                   }
@@ -96,6 +92,16 @@
           </tbody>
         </table>
       </div>
+
+      <app-paginacao
+        [page]="paginacao.page"
+        [size]="paginacao.size"
+        [totalPages]="totalPages"
+        [totalElements]="totalElements"
+        [disabled]="loading"
+        (pageChange)="mudarPagina($event)"
+        (sizeChange)="mudarTamanhoPagina($event)"
+      />
     }
   </section>
 </div>

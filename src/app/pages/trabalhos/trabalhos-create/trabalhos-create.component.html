@@ -6,82 +6,110 @@
 
     <div class="actions">
       <button type="button" class="secondary" [routerLink]="linkVoltar">Voltar</button>
-      <button
-        type="button"
-        class="primary"
-        (click)="salvar()"
-        [disabled]="loading || loadingDisciplinas || disciplinas.length === 0"
-      >
+      <button type="button" class="primary" (click)="salvar()"
+        [disabled]="loading || loadingDisciplinas || disciplinas.length === 0">
         @if (loading) { Salvando... } @else { Salvar }
       </button>
     </div>
   </header>
 
   @if (errorMessage) {
-    <div class="alert error">{{ errorMessage }}</div>
+  <div class="alert error">{{ errorMessage }}</div>
   }
 
   <section class="card">
     @if (loadingDisciplinas) {
-      <p class="muted">Carregando disciplinas...</p>
+    <p class="muted">Carregando disciplinas...</p>
     } @else {
-      <form (ngSubmit)="salvar()">
-        <div class="grid">
-          <label class="full">
-            <span>Título</span>
-            <input [(ngModel)]="form.titulo" name="titulo" />
-          </label>
+    <form (ngSubmit)="salvar()">
+      <div class="grid">
+        <label class="full">
+          <span>Título</span>
+          <input [(ngModel)]="form.titulo" name="titulo" />
+        </label>
 
-          <label class="full">
-            <span>Descrição</span>
-            <textarea [(ngModel)]="form.descricao" name="descricao" rows="3"></textarea>
-          </label>
+        <label class="full">
+          <span>Descrição</span>
+          <textarea [(ngModel)]="form.descricao" name="descricao" rows="3"></textarea>
+        </label>
 
-          <label class="full">
-            <span>Link do arquivo do trabalho</span>
-            <input
-              [(ngModel)]="form.linkArquivoTrabalho"
-              name="linkArquivoTrabalho"
-              type="url"
-              placeholder="https://..."
-            />
-          </label>
+        <div class="full campo-arquivo">
+          <span class="rotulo">Arquivo do trabalho (PDF até 8 MB)</span>
 
-          <label>
-            <span>Disciplina</span>
-            <select
-              [(ngModel)]="form.disciplinaId"
-              name="disciplinaId"
-              [disabled]="disciplinaBloqueada"
-            >
-              <option [ngValue]="null" disabled>Selecione uma disciplina</option>
-              @for (disciplina of disciplinas; track disciplina.id) {
-                <option [ngValue]="disciplina.id">{{ disciplina.nome }}</option>
-              }
-            </select>
-          </label>
-
-          <label>
-            <span>Data início</span>
-            <input [(ngModel)]="form.dataInicio" name="dataInicio" type="date" />
-          </label>
-
-          <label>
-            <span>Data fim</span>
-            <input [(ngModel)]="form.dataFim" name="dataFim" type="date" />
-          </label>
-        </div>
-
-        <div class="footer">
-          <button
-            type="submit"
-            class="primary"
-            [disabled]="loading || disciplinas.length === 0"
+          <div
+            class="dropzone"
+            [class.ativo]="arrastandoArquivo"
+            [class.preenchido]="!!arquivoSelecionado || (modoEdicao && pdfAtualExiste)"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+            (click)="inputArquivo.click()"
           >
-            @if (loading) { Salvando... } @else { Salvar }
-          </button>
+            <input
+              #inputArquivo
+              type="file"
+              accept=".pdf,application/pdf"
+              (change)="onArquivoSelecionado($event)"
+              hidden
+            />
+
+            @if (arquivoSelecionado) {
+            <p class="dropzone-titulo">{{ nomeArquivo }}</p>
+            <p class="dropzone-dica">
+              @if (modoEdicao && pdfAtualExiste) {
+              Este arquivo vai substituir o PDF atual ao salvar
+              } @else {
+              Arraste outro PDF para substituir ou clique para escolher
+              }
+            </p>
+            <button type="button" class="remover" (click)="removerArquivo(); $event.stopPropagation()">
+              Remover arquivo
+            </button>
+            } @else if (modoEdicao && pdfAtualExiste) {
+            <p class="dropzone-titulo">PDF atual mantido</p>
+            <p class="dropzone-dica">Arraste um novo PDF para substituir ou clique para escolher</p>
+            <button type="button" class="ver-pdf" (click)="abrirPdfAtual(); $event.stopPropagation()">
+              Ver PDF atual
+            </button>
+            } @else {
+            <p class="dropzone-titulo">Arraste o PDF para cá</p>
+            <p class="dropzone-dica">ou clique para selecionar o arquivo (máx. 8 MB)</p>
+            }
+          </div>
+
+          @if (erroArquivo) {
+          <small class="erro">{{ erroArquivo }}</small>
+          }
         </div>
-      </form>
+
+        <label>
+          <span>Disciplina</span>
+          <select [(ngModel)]="form.disciplinaId" name="disciplinaId" [disabled]="disciplinaBloqueada">
+            <option [ngValue]="null" disabled>Selecione uma disciplina</option>
+            @for (disciplina of disciplinas; track disciplina.id) {
+            <option [ngValue]="disciplina.id">{{ disciplina.nome }}</option>
+            }
+          </select>
+        </label>
+
+        <label>
+          <span>Data início</span>
+          <input type="text" [value]="form.dataInicio | dataBr" disabled readonly />
+          <small class="muted">Capturada automaticamente</small>
+        </label>
+
+        <label>
+          <span>Data fim</span>
+          <input [(ngModel)]="form.dataFim" name="dataFim" type="date" [min]="form.dataInicio" />
+        </label>
+      </div>
+
+      <div class="footer">
+        <button type="submit" class="primary" [disabled]="loading || disciplinas.length === 0">
+          @if (loading) { Salvando... } @else { Salvar }
+        </button>
+      </div>
+    </form>
     }
   </section>
 </div>

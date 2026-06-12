@@ -135,6 +135,90 @@ a {
   font-weight: 600;
 }
 
+.link-pdf {
+  border: none;
+  background: transparent;
+  color: #4f46e5;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link-pdf:hover {
+  color: #4338ca;
+}
+
+.campo-arquivo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.campo-arquivo .rotulo {
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dropzone {
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8fafc;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.dropzone:hover {
+  border-color: #a5b4fc;
+  background: #eef2ff;
+}
+
+.dropzone.ativo {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+.dropzone.preenchido {
+  border-style: solid;
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+.dropzone-titulo {
+  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
+  word-break: break-all;
+}
+
+.dropzone-dica {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.dropzone .remover {
+  margin-top: 10px;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.dropzone .remover:hover {
+  background: #fecaca;
+}
+
+.erro {
+  color: #b91c1c;
+}
+
 .detalhes {
   margin: 0;
   display: grid;
