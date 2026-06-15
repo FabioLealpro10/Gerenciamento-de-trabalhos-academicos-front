@@ -1,49 +1,10 @@
 services:
-  db:
-    image: mysql:8.0
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: gerenciador
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: secret
-      MYSQL_ROOT_PASSWORD: rootsecret
-    ports:
-      - "3307:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  app:
-    build: .
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/gerenciador?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-      SPRING_DATASOURCE_DRIVER: com.mysql.cj.jdbc.Driver
-      SPRING_DATASOURCE_USERNAME: appuser
-      SPRING_DATASOURCE_PASSWORD: secret
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create
-      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.MySQL8Dialect
-      JWT_SECRET: change-this-secret-in-prod-please-123456789012345678901234567890
-    depends_on:
-      - db
-
-  phpmyadmin:
-    image: phpmyadmin:latest
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8081:80"
-    environment:
-      PMA_HOST: db
-      PMA_USER: appuser
-      PMA_PASSWORD: secret
-      PMA_ROOT_PASSWORD: rootsecret
-    depends_on:
-      - db
-
-volumes:
-  db_data:
+      - "4200:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,18 +1,18 @@
-FROM maven:3.8.8-eclipse-temurin-17 AS build
-WORKDIR /workspace
-
-# Copia pom e wrapper para cache das dependências
-COPY pom.xml mvnw ./
-COPY src ./src
-
-# Build da aplicação (skip tests para acelerar, mudar se precisar)
-RUN mvn -B -DskipTests package
-
-FROM eclipse-temurin:17-jre
+FROM node:22-alpine AS build
 WORKDIR /app
 
-# Copia jar construido
-COPY --from=build /workspace/target/*.jar app.jar
+COPY package.json package-lock.json ./
+RUN npm ci
 
-EXPOSE 8080
-ENTRYPOINT ["java","-jar","/app/app.jar"]
+COPY . .
+RUN npm run build -- --configuration=docker
+
+FROM nginx:1.27-alpine
+RUN rm -rf /usr/share/nginx/html/*
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/dist/Gerenciamento-de-trabalhos-academicos/browser /usr/share/nginx/html
+RUN if [ -f /usr/share/nginx/html/index.csr.html ]; then \
+      mv /usr/share/nginx/html/index.csr.html /usr/share/nginx/html/index.html; \
+    fi
+
+EXPOSE 80
