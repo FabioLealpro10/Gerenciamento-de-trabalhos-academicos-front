@@ -4,6 +4,8 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 
+type ModoLogin = 'login' | 'esqueci-email' | 'esqueci-codigo';
+
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -16,13 +18,43 @@ export class LoginComponent {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  modo: ModoLogin = 'login';
+
   email = '';
   password = '';
+  codigo = '';
+
   errorMessage = '';
+  infoMessage = '';
   loading = false;
 
-  login() {
+  get titulo(): string {
+    if (this.modo === 'esqueci-email') {
+      return 'Esqueci a senha';
+    }
+
+    if (this.modo === 'esqueci-codigo') {
+      return 'Verificar código';
+    }
+
+    return 'Login';
+  }
+
+  get subtitulo(): string {
+    if (this.modo === 'esqueci-email') {
+      return 'Informe seu e-mail para receber o código de recuperação.';
+    }
+
+    if (this.modo === 'esqueci-codigo') {
+      return 'Digite o código enviado para o seu e-mail.';
+    }
+
+    return 'Gerenciamento de Trabalhos Acadêmicos';
+  }
+
+  login(): void {
     this.errorMessage = '';
+    this.infoMessage = '';
     this.loading = true;
     this.atualizarTela();
 
@@ -43,6 +75,111 @@ export class LoginComponent {
         this.errorMessage = resultado.message;
         this.atualizarTela();
       });
+  }
+
+  solicitarCodigo(): void {
+    this.errorMessage = '';
+    this.infoMessage = '';
+
+    if (!this.email.trim()) {
+      this.errorMessage = 'Informe o e-mail cadastrado.';
+      this.atualizarTela();
+      return;
+    }
+
+    this.loading = true;
+    this.atualizarTela();
+
+    this.authService
+      .esqueciSenha(this.email)
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.atualizarTela();
+        }),
+      )
+      .subscribe((resultado) => {
+        if (!resultado.ok) {
+          this.errorMessage = resultado.message;
+          this.atualizarTela();
+          return;
+        }
+
+        this.infoMessage = resultado.data.mensagem;
+
+        if (resultado.data.emailCadastrado) {
+          this.codigo = '';
+          this.modo = 'esqueci-codigo';
+        } else {
+          this.errorMessage = resultado.data.mensagem || 'E-mail não cadastrado.';
+          this.infoMessage = '';
+        }
+
+        this.atualizarTela();
+      });
+  }
+
+  verificarCodigo(): void {
+    this.errorMessage = '';
+    this.infoMessage = '';
+
+    if (!this.email.trim()) {
+      this.errorMessage = 'Informe o e-mail cadastrado.';
+      this.atualizarTela();
+      return;
+    }
+
+    if (!this.codigo.trim()) {
+      this.errorMessage = 'Informe o código recebido.';
+      this.atualizarTela();
+      return;
+    }
+
+    this.loading = true;
+    this.atualizarTela();
+
+    this.authService
+      .verificarCodigo(this.email, this.codigo)
+      .pipe(
+        finalize(() => {
+          this.loading = false;
+          this.atualizarTela();
+        }),
+      )
+      .subscribe((resultado) => {
+        if (resultado.ok) {
+          this.router.navigate(['/dashboard']);
+          return;
+        }
+
+        this.errorMessage = resultado.message;
+        this.atualizarTela();
+      });
+  }
+
+  abrirEsqueciSenha(): void {
+    this.modo = 'esqueci-email';
+    this.password = '';
+    this.codigo = '';
+    this.errorMessage = '';
+    this.infoMessage = '';
+    this.atualizarTela();
+  }
+
+  voltarParaLogin(): void {
+    this.modo = 'login';
+    this.codigo = '';
+    this.errorMessage = '';
+    this.infoMessage = '';
+    this.atualizarTela();
+  }
+
+  voltarParaEmail(): void {
+    this.modo = 'esqueci-email';
+    this.codigo = '';
+    this.errorMessage = '';
+    this.infoMessage = '';
+    this.atualizarTela();
   }
 
   private atualizarTela(): void {

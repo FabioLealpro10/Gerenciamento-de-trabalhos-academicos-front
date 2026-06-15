@@ -2,8 +2,10 @@ import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, map, of } from 'rxjs';
-import { AUTH_LOGIN_URL } from '../config/api.config';
+import { AUTH_ESQUECI_SENHA_URL, AUTH_LOGIN_URL, AUTH_VERIFICAR_CODIGO_URL } from '../config/api.config';
 import {
+  EsqueciSenhaResponse,
+  EsqueciSenhaResult,
   LoginResponse,
   LoginResult,
   TipoUsuario,
@@ -52,6 +54,103 @@ export class AuthService {
           of({ ok: false as const, message: this.mensagemErroLogin(erro) }),
         ),
       );
+  }
+
+  esqueciSenha(email: string): Observable<EsqueciSenhaResult> {
+    return this.http
+      .post<EsqueciSenhaResponse>(AUTH_ESQUECI_SENHA_URL, { email: email.trim() })
+      .pipe(
+        map((body) => ({
+          ok: true as const,
+          data: {
+            emailCadastrado: Boolean(body.emailCadastrado),
+            mensagem: String(body.mensagem ?? ''),
+          },
+        })),
+        catchError((erro: HttpErrorResponse) =>
+          of({
+            ok: false as const,
+            message: this.mensagemErroRecuperacao(erro, 'solicitar recuperação'),
+          }),
+        ),
+      );
+  }
+
+  verificarCodigo(email: string, codigo: string): Observable<LoginResult> {
+    return this.http
+      .post<LoginResponse>(
+        AUTH_VERIFICAR_CODIGO_URL,
+        { email: email.trim(), codigo: codigo.trim() },
+        { observe: 'response' },
+      )
+      .pipe(
+        map((response) => {
+          const headerAuth =
+            response.headers.get('Authorization') ??
+            response.headers.get('authorization');
+
+          const salvou = this.salvarSessao(
+            response.body ?? {},
+            email,
+            headerAuth,
+          );
+
+          if (!salvou) {
+            return {
+              ok: false as const,
+              message:
+                'Token não retornado pela API. Verifique o código informado.',
+            };
+          }
+
+          return { ok: true as const };
+        }),
+        catchError((erro: HttpErrorResponse) =>
+          of({
+            ok: false as const,
+            message: this.mensagemErroRecuperacao(erro, 'verificar código'),
+          }),
+        ),
+      );
+  }
+
+  private mensagemErroRecuperacao(
+    erro: HttpErrorResponse,
+    contexto: string,
+  ): string {
+    const mensagemApi = this.extrairMensagemErro(erro);
+
+    if (mensagemApi) {
+      return mensagemApi;
+    }
+
+    if (erro.status === 0) {
+      return 'Não foi possível conectar ao servidor. Verifique se a API está em execução.';
+    }
+
+    return `Erro ao ${contexto}. Tente novamente.`;
+  }
+
+  private extrairMensagemErro(erro: HttpErrorResponse): string | null {
+    const body = erro.error;
+
+    if (typeof body === 'string' && body.trim()) {
+      return body.trim();
+    }
+
+    if (body && typeof body === 'object') {
+      const objeto = body as Record<string, unknown>;
+      const chaves = ['mensagem', 'message', 'erro', 'error'];
+
+      for (const chave of chaves) {
+        const valor = objeto[chave];
+        if (typeof valor === 'string' && valor.trim()) {
+          return valor.trim();
+        }
+      }
+    }
+
+    return null;
   }
 
   private mensagemErroLogin(erro: HttpErrorResponse): string {

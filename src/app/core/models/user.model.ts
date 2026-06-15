@@ -44,3 +44,12 @@ export interface FeatureItem {
 export type LoginResult =
   | { ok: true }
   | { ok: false; message: string };
+
+export interface EsqueciSenhaResponse {
+  emailCadastrado: boolean;
+  mensagem: string;
+}
+
+export type EsqueciSenhaResult =
+  | { ok: true; data: EsqueciSenhaResponse }
+  | { ok: false; message: string };

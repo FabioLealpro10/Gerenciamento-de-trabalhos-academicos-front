@@ -14,7 +14,11 @@ const PREFIXOS_COM_TOKEN = [
 ];
 
 function requerToken(url: string): boolean {
-  if (url.includes('/auth/login')) {
+  if (
+    url.includes('/auth/login') ||
+    url.includes('/auth/esqueci-senha') ||
+    url.includes('/auth/verificar-codigo')
+  ) {
     return false;
   }
 

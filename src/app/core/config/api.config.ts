@@ -7,6 +7,12 @@ export const ALUNOS_URL = '/alunos';
 /** Login: http://localhost:8080/auth/login */
 export const AUTH_LOGIN_URL = '/auth/login';
 
+/** Recuperação de senha: http://localhost:8080/auth/esqueci-senha */
+export const AUTH_ESQUECI_SENHA_URL = '/auth/esqueci-senha';
+
+/** Verificação de código: http://localhost:8080/auth/verificar-codigo */
+export const AUTH_VERIFICAR_CODIGO_URL = '/auth/verificar-codigo';
+
 /** Administradores: http://localhost:8080/auth/admins */
 export const ADMINS_URL = '/auth/admins';
 

@@ -1,36 +1,116 @@
 <div class="login-container">
   <div class="login-card">
-    <h1>Login</h1>
-    <p class="subtitle">Gerenciamento de Trabalhos Acadêmicos</p>
+    <h1>{{ titulo }}</h1>
+    <p class="subtitle">{{ subtitulo }}</p>
 
-    <form (ngSubmit)="login()">
-      <label for="email">Email</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        [(ngModel)]="email"
-        [disabled]="loading"
-        placeholder="seu@email.com"
-        required />
+    @if (modo === 'login') {
+      <form (ngSubmit)="login()">
+        <label for="email">E-mail</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          [disabled]="loading"
+          placeholder="seu@email.com"
+          required
+        />
 
-      <label for="password">Senha</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        [(ngModel)]="password"
-        [disabled]="loading"
-        placeholder="Digite sua senha"
-        required />
+        <label for="password">Senha</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          [disabled]="loading"
+          placeholder="Digite sua senha"
+          required
+        />
 
-      <p class="error-message" role="alert" [hidden]="!errorMessage">
-        {{ errorMessage || ' ' }}
-      </p>
+        <button type="button" class="btn-link" (click)="abrirEsqueciSenha()" [disabled]="loading">
+          Esqueci minha senha
+        </button>
 
-      <button type="submit" [disabled]="loading">
-        {{ loading ? 'Entrando...' : 'Entrar' }}
-      </button>
-    </form>
+        @if (errorMessage) {
+          <p class="error-message" role="alert">{{ errorMessage }}</p>
+        }
+
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          {{ loading ? 'Entrando...' : 'Entrar' }}
+        </button>
+      </form>
+    }
+
+    @if (modo === 'esqueci-email') {
+      <form (ngSubmit)="solicitarCodigo()">
+        <label for="emailRecuperacao">E-mail</label>
+        <input
+          type="email"
+          id="emailRecuperacao"
+          name="emailRecuperacao"
+          [(ngModel)]="email"
+          [disabled]="loading"
+          placeholder="seu@email.com"
+          required
+        />
+
+        @if (infoMessage) {
+          <p class="info-message" role="status">{{ infoMessage }}</p>
+        }
+
+        @if (errorMessage) {
+          <p class="error-message" role="alert">{{ errorMessage }}</p>
+        }
+
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          {{ loading ? 'Enviando...' : 'Enviar código' }}
+        </button>
+
+        <button type="button" class="btn-secondary" (click)="voltarParaLogin()" [disabled]="loading">
+          Voltar ao login
+        </button>
+      </form>
+    }
+
+    @if (modo === 'esqueci-codigo') {
+      <form (ngSubmit)="verificarCodigo()">
+        <label for="emailConfirmacao">E-mail</label>
+        <input
+          type="email"
+          id="emailConfirmacao"
+          name="emailConfirmacao"
+          [(ngModel)]="email"
+          readonly
+        />
+
+        <label for="codigo">Código</label>
+        <input
+          type="text"
+          id="codigo"
+          name="codigo"
+          [(ngModel)]="codigo"
+          [disabled]="loading"
+          placeholder="Digite o código recebido"
+          autocomplete="one-time-code"
+          required
+        />
+
+        @if (infoMessage) {
+          <p class="info-message" role="status">{{ infoMessage }}</p>
+        }
+
+        @if (errorMessage) {
+          <p class="error-message" role="alert">{{ errorMessage }}</p>
+        }
+
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          {{ loading ? 'Verificando...' : 'Verificar código' }}
+        </button>
+
+        <button type="button" class="btn-secondary" (click)="voltarParaEmail()" [disabled]="loading">
+          Voltar
+        </button>
+      </form>
+    }
   </div>
 </div>
