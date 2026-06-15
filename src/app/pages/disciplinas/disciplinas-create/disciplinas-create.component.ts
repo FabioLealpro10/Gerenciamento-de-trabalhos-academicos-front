@@ -46,6 +46,7 @@ export class DisciplinasCreateComponent implements OnInit {
   loading = false;
   loadingProfessores = false;
   errorMessage = '';
+  successMessage = '';
 
   get opcoesProfessores(): OpcaoSelecao[] {
     return this.professores.map((professor) => ({
@@ -67,6 +68,7 @@ export class DisciplinasCreateComponent implements OnInit {
 
   salvar(): void {
     this.errorMessage = '';
+    this.successMessage = '';
 
     const validacao = this.modoEdicao
       ? validarEdicaoDisciplina(this.form)
@@ -107,8 +109,13 @@ export class DisciplinasCreateComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          const msg = this.modoEdicao ? 'edicao' : 'cadastro';
-          this.router.navigate(['/disciplinas'], { queryParams: { msg } });
+          if (this.modoEdicao) {
+            this.router.navigate(['/disciplinas'], { queryParams: { msg: 'edicao' } });
+            return;
+          }
+
+          this.successMessage = 'Cadastro realizado com sucesso!';
+          this.limparFormulario();
         },
         error: (err: HttpErrorResponse) => {
           this.errorMessage = mensagemErroHttp(err, {
@@ -119,6 +126,15 @@ export class DisciplinasCreateComponent implements OnInit {
           });
         },
       });
+  }
+
+  private limparFormulario(): void {
+    this.form = {
+      nome: '',
+      dataInicio: '',
+      dataFim: '',
+      idProfessor: null,
+    };
   }
 
   private preencherFormulario(disciplina: DisciplinaListItem): void {

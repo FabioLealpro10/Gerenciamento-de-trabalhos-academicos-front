@@ -30,9 +30,29 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.profile-link:hover {
+  background: #e0e7ff;
 }
 
 button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: none;
   border-radius: 10px;
   padding: 10px 14px;
@@ -89,6 +109,7 @@ button[disabled] {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 
 .card-header h2 {

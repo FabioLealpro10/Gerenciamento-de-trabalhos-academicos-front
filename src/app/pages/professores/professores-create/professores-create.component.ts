@@ -12,6 +12,7 @@ import {
 import {
   validarCadastroProfessor,
   validarEdicaoProfessor,
+  montarPayloadEdicaoProfessor,
 } from '../../../core/utils/professor-form.validation';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
 
@@ -41,6 +42,7 @@ export class ProfessoresCreateComponent implements OnInit {
   professorId: string | null = null;
   loading = false;
   errorMessage = '';
+  successMessage = '';
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -62,6 +64,7 @@ export class ProfessoresCreateComponent implements OnInit {
 
   salvar(): void {
     this.errorMessage = '';
+    this.successMessage = '';
 
     const validacao = this.modoEdicao
       ? validarEdicaoProfessor(this.form)
@@ -85,7 +88,7 @@ export class ProfessoresCreateComponent implements OnInit {
     const request$ = this.modoEdicao
       ? this.professoresService.atualizar(
           this.professorId!,
-          this.montarPayloadEdicao(),
+          montarPayloadEdicaoProfessor(this.professorId!, this.form),
         )
       : this.professoresService.cadastrar(this.montarPayloadCadastro());
 
@@ -98,8 +101,13 @@ export class ProfessoresCreateComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          const msg = this.modoEdicao ? 'edicao' : 'cadastro';
-          this.router.navigate(['/professores'], { queryParams: { msg } });
+          if (this.modoEdicao) {
+            this.router.navigate(['/professores'], { queryParams: { msg: 'edicao' } });
+            return;
+          }
+
+          this.successMessage = 'Cadastro realizado com sucesso!';
+          this.limparFormulario();
         },
         error: (err: HttpErrorResponse) => {
           this.errorMessage = mensagemErroHttp(err, {
@@ -122,20 +130,14 @@ export class ProfessoresCreateComponent implements OnInit {
     };
   }
 
-  private montarPayloadEdicao() {
-    const payload = {
-      nome: this.form.nome.trim(),
-      email: this.form.email.trim(),
+  private limparFormulario(): void {
+    this.form = {
+      nome: '',
+      email: '',
+      password: '',
       role: 'PROFESSOR',
-      areaAtuacao: this.form.areaAtuacao.trim(),
+      areaAtuacao: '',
     };
-
-    const senha = this.form.password.trim();
-    if (senha.length >= 8) {
-      return { ...payload, password: senha };
-    }
-
-    return payload;
   }
 
   private preencherFormulario(professor: ProfessorListItem): void {

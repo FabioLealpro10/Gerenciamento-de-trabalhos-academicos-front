@@ -1,3 +1,5 @@
+import { ProfessorUpdateRequest } from '../models/professor.model';
+
 export interface ProfessorFormFields {
   nome: string;
   email: string;
@@ -52,6 +54,26 @@ export function validarEdicaoProfessor(
   }
 
   return null;
+}
+
+export function montarPayloadEdicaoProfessor(
+  id: number | string,
+  form: ProfessorFormFields & { role?: string },
+): ProfessorUpdateRequest {
+  const payload: ProfessorUpdateRequest = {
+    id: Number(id),
+    nome: form.nome.trim(),
+    email: form.email.trim(),
+    role: form.role ?? 'PROFESSOR',
+    areaAtuacao: form.areaAtuacao.trim(),
+  };
+
+  const senha = form.password.trim();
+  if (senha.length >= 8) {
+    payload.password = senha;
+  }
+
+  return payload;
 }
 
 function campoPreenchido(valor: string): boolean {

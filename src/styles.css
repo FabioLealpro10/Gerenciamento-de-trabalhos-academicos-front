@@ -9,6 +9,63 @@ body {
   color: #0f172a;
 }
 
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+.titulo-com-icone {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titulo-com-icone h1,
+.titulo-com-icone h2,
+.titulo-com-icone h3 {
+  margin: 0;
+}
+
+.section-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.busca-compact {
+  min-width: 220px;
+  max-width: 320px;
+  margin-bottom: 0;
+  flex: 1;
+}
+
+.card-header-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.card-header-main h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
 /* Barra de pesquisa das listagens (pesquisa automática por subpalavra) */
 .busca {
   position: relative;

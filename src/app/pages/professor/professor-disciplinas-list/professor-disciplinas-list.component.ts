@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize, switchMap } from 'rxjs';
@@ -8,13 +9,15 @@ import { AuthService } from '../../../core/services/auth.service';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { filtrarPorTextoLocal } from '../../../core/utils/local-search.util';
 import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
 import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
+import { MaterialIconComponent } from '../../../shared/icons/material-icon.component';
 
 @Component({
   selector: 'app-professor-disciplinas-list',
   standalone: true,
-  imports: [RouterLink, PaginacaoComponent, DataBrPipe],
+  imports: [RouterLink, FormsModule, PaginacaoComponent, DataBrPipe, MaterialIconComponent],
   templateUrl: './professor-disciplinas-list.component.html',
   styleUrl: './professor-disciplinas-list.component.css',
 })
@@ -32,6 +35,13 @@ export class ProfessorDisciplinasListComponent implements OnInit {
   paginacao: PageQuery = { ...PAGINA_INICIAL };
   totalPages = 0;
   totalElements = 0;
+  pesquisaLocal = '';
+
+  get disciplinasFiltradas(): DisciplinaListItem[] {
+    return filtrarPorTextoLocal(this.disciplinas, this.pesquisaLocal, [
+      (d) => d.nome,
+    ]);
+  }
 
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {

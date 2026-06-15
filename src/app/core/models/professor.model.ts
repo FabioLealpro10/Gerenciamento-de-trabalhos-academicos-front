@@ -7,6 +7,7 @@ export interface ProfessorCreateRequest {
 }
 
 export interface ProfessorUpdateRequest {
+  id: number;
   nome: string;
   email: string;
   role: string;

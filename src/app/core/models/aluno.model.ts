@@ -7,6 +7,7 @@ export interface AlunoCreateRequest {
 }
 
 export interface AlunoUpdateRequest {
+  id: number;
   nome: string;
   email: string;
   role: string;

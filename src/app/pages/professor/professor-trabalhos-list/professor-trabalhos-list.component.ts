@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
@@ -8,13 +9,15 @@ import { TrabalhoListItem } from '../../../core/models/trabalho.model';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { filtrarPorTextoLocal } from '../../../core/utils/local-search.util';
 import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
 import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
+import { MaterialIconComponent } from '../../../shared/icons/material-icon.component';
 
 @Component({
   selector: 'app-professor-trabalhos-list',
   standalone: true,
-  imports: [RouterLink, PaginacaoComponent, DataBrPipe],
+  imports: [RouterLink, FormsModule, PaginacaoComponent, DataBrPipe, MaterialIconComponent],
   templateUrl: './professor-trabalhos-list.component.html',
   styleUrl: './professor-trabalhos-list.component.css',
 })
@@ -35,6 +38,14 @@ export class ProfessorTrabalhosListComponent implements OnInit {
   paginacao: PageQuery = { ...PAGINA_INICIAL };
   totalPages = 0;
   totalElements = 0;
+  pesquisaLocal = '';
+
+  get trabalhosFiltrados(): TrabalhoListItem[] {
+    return filtrarPorTextoLocal(this.trabalhos, this.pesquisaLocal, [
+      (t) => t.titulo,
+      (t) => t.descricao,
+    ]);
+  }
 
   ngOnInit(): void {
     if (!this.authService.isAuthenticated()) {

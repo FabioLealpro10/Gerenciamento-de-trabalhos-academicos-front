@@ -40,6 +40,22 @@ export const adminGuard: CanActivateFn = () => {
   return true;
 };
 
+/** Rotas exclusivas do administrador principal (id 1). */
+export const superAdminGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (!authService.isAuthenticated()) {
+    return router.createUrlTree(['/login']);
+  }
+
+  if (!authService.isAdminMaster()) {
+    return router.createUrlTree(['/dashboard']);
+  }
+
+  return true;
+};
+
 /** Rotas do professor — somente PROFESSOR autenticado */
 export const professorGuard: CanActivateFn = () => {
   const authService = inject(AuthService);

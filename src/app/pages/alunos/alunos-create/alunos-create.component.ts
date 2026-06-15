@@ -9,6 +9,7 @@ import { AlunoCreateRequest, UsuarioListItem } from '../../../core/models/aluno.
 import {
   validarCadastroAluno,
   validarEdicaoAluno,
+  montarPayloadEdicaoAluno,
 } from '../../../core/utils/aluno-form.validation';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
 
@@ -38,6 +39,7 @@ export class AlunosCreateComponent implements OnInit {
   alunoId: string | null = null;
   loading = false;
   errorMessage = '';
+  successMessage = '';
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -59,6 +61,7 @@ export class AlunosCreateComponent implements OnInit {
 
   salvar(): void {
     this.errorMessage = '';
+    this.successMessage = '';
 
     const validacao = this.modoEdicao
       ? validarEdicaoAluno(this.form)
@@ -80,7 +83,10 @@ export class AlunosCreateComponent implements OnInit {
     this.cdr.detectChanges();
 
     const request$ = this.modoEdicao
-      ? this.alunosService.atualizar(this.alunoId!, this.montarPayloadEdicao())
+      ? this.alunosService.atualizar(
+          this.alunoId!,
+          montarPayloadEdicaoAluno(this.alunoId!, this.form),
+        )
       : this.alunosService.cadastrar(this.montarPayloadCadastro());
 
     request$
@@ -92,8 +98,13 @@ export class AlunosCreateComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          const msg = this.modoEdicao ? 'edicao' : 'cadastro';
-          this.router.navigate(['/alunos'], { queryParams: { msg } });
+          if (this.modoEdicao) {
+            this.router.navigate(['/alunos'], { queryParams: { msg: 'edicao' } });
+            return;
+          }
+
+          this.successMessage = 'Cadastro realizado com sucesso!';
+          this.limparFormulario();
         },
         error: (err: HttpErrorResponse) => {
           this.errorMessage = mensagemErroHttp(err, {
@@ -116,20 +127,14 @@ export class AlunosCreateComponent implements OnInit {
     };
   }
 
-  private montarPayloadEdicao() {
-    const payload = {
-      nome: this.form.nome.trim(),
-      email: this.form.email.trim(),
+  private limparFormulario(): void {
+    this.form = {
+      nome: '',
+      email: '',
+      password: '',
       role: 'ALUNO',
-      turma: this.form.turma.trim(),
+      turma: '',
     };
-
-    const senha = this.form.password.trim();
-    if (senha.length >= 8) {
-      return { ...payload, password: senha };
-    }
-
-    return payload;
   }
 
   private preencherFormulario(aluno: UsuarioListItem): void {

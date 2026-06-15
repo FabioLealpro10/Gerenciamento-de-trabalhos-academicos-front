@@ -7,6 +7,9 @@ export const ALUNOS_URL = '/alunos';
 /** Login: http://localhost:8080/auth/login */
 export const AUTH_LOGIN_URL = '/auth/login';
 
+/** Administradores: http://localhost:8080/auth/admins */
+export const ADMINS_URL = '/auth/admins';
+
 /** Disciplinas: http://localhost:8080/disciplinas */
 export const DISCIPLINAS_URL = '/disciplinas';
 

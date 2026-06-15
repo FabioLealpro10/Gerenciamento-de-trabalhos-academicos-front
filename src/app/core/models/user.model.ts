@@ -35,7 +35,10 @@ export interface FeatureItem {
   id: string;
   titulo: string;
   descricao: string;
+  icone: string;
   roles: TipoUsuario[];
+  /** Visível apenas para o administrador principal (id 1). */
+  superAdminOnly?: boolean;
 }
 
 export type LoginResult =

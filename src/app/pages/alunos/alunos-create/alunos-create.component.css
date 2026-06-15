@@ -77,6 +77,11 @@ button[disabled] {
   color: #991b1b;
 }
 
+.alert.success {
+  border-left: 4px solid #22c55e;
+  color: #166534;
+}
+
 .card {
   background: #fff;
   border-radius: 12px;

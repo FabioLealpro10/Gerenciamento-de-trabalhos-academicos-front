@@ -57,6 +57,16 @@ export class AlunosService {
       );
   }
 
+  buscarPorId(id: number | string): Observable<UsuarioListItem> {
+    return this.http
+      .get<unknown>(`${API_URL}/${id}`, { headers: this.auth.getAuthHeaders() })
+      .pipe(
+        map((body) =>
+          this.normalizarUsuario(body as Record<string, unknown>),
+        ),
+      );
+  }
+
   cadastrar(payload: AlunoCreateRequest): Observable<unknown> {
     return this.http.post(API_URL, payload, {
       headers: this.auth.getAuthHeaders(),

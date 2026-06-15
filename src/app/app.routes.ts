@@ -5,6 +5,7 @@ import {
   loginGuard,
   professorGuard,
   alunoGuard,
+  superAdminGuard,
 } from './core/guards/auth.guard';
 
 export const routes: Routes = [
@@ -25,6 +26,38 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/dashboard/dashboard.component').then(
         (m) => m.DashboardComponent,
+      ),
+  },
+  {
+    path: 'admin/meus-dados',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('./pages/admin/admin-perfil/admin-perfil.component').then(
+        (m) => m.AdminPerfilComponent,
+      ),
+  },
+  {
+    path: 'admins/novo',
+    canActivate: [superAdminGuard],
+    loadComponent: () =>
+      import('./pages/admins/admins-create/admins-create.component').then(
+        (m) => m.AdminsCreateComponent,
+      ),
+  },
+  {
+    path: 'admins/:id/credenciais',
+    canActivate: [superAdminGuard],
+    loadComponent: () =>
+      import('./pages/admins/admins-credenciais/admins-credenciais.component').then(
+        (m) => m.AdminsCredenciaisComponent,
+      ),
+  },
+  {
+    path: 'admins',
+    canActivate: [superAdminGuard],
+    loadComponent: () =>
+      import('./pages/admins/admins-list/admins-list.component').then(
+        (m) => m.AdminsListComponent,
       ),
   },
   {
@@ -116,6 +149,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'aluno/meus-dados',
+    canActivate: [alunoGuard],
+    loadComponent: () =>
+      import('./pages/aluno/aluno-perfil/aluno-perfil.component').then(
+        (m) => m.AlunoPerfilComponent,
+      ),
+  },
+  {
     path: 'aluno/disciplinas/:disciplinaId/trabalhos/:trabalhoId/entrega',
     canActivate: [alunoGuard],
     loadComponent: () =>
@@ -169,6 +210,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/professor/professor-trabalhos-list/professor-trabalhos-list.component').then(
         (m) => m.ProfessorTrabalhosListComponent,
+      ),
+  },
+  {
+    path: 'professor/meus-dados',
+    canActivate: [professorGuard],
+    loadComponent: () =>
+      import('./pages/professor/professor-perfil/professor-perfil.component').then(
+        (m) => m.ProfessorPerfilComponent,
       ),
   },
   {

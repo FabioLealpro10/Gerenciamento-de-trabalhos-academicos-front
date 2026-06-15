@@ -1,0 +1,85 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>Gerenciar Administradores</h1>
+      <p class="subtitle">Disponível apenas para o administrador principal</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/dashboard">Voltar</button>
+      <button type="button" class="primary" (click)="irParaCadastro()">
+        Cadastrar admin
+      </button>
+    </div>
+  </header>
+
+  @if (successMessage) {
+    <div class="alert success">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    <div class="card-header">
+      <h2>Lista</h2>
+      <button type="button" class="ghost" (click)="carregar()" [disabled]="loading">
+        Atualizar
+      </button>
+    </div>
+
+    @if (loading) {
+      <p class="muted">Carregando...</p>
+    } @else if (admins.length === 0) {
+      <p class="muted">Nenhum administrador cadastrado ainda.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Perfil</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (admin of admins; track admin.id ?? admin.email) {
+              <tr>
+                <td>{{ admin.nome }}</td>
+                <td>{{ admin.email }}</td>
+                <td>{{ admin.role ?? 'ADMIN' }}</td>
+                <td class="acoes">
+                  <button type="button" class="ghost" (click)="editarCredenciais(admin)">
+                    Credenciais
+                  </button>
+                  @if (podeExcluir(admin)) {
+                    <button
+                      type="button"
+                      class="ghost danger"
+                      (click)="excluir(admin)"
+                      [disabled]="loading"
+                    >
+                      Excluir
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <app-paginacao
+        [page]="paginacao.page"
+        [size]="paginacao.size"
+        [totalPages]="totalPages"
+        [totalElements]="totalElements"
+        [disabled]="loading"
+        (pageChange)="mudarPagina($event)"
+        (sizeChange)="mudarTamanhoPagina($event)"
+      />
+    }
+  </section>
+</div>

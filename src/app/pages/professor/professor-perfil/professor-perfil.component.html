@@ -1,0 +1,74 @@
+<div class="page">
+  <header class="header">
+    <div>
+      <h1>Meus dados</h1>
+      <p class="subtitle">Atualize nome, e-mail, senha e área de atuação</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="secondary" routerLink="/dashboard">Voltar</button>
+      <button type="button" class="primary" (click)="salvar()" [disabled]="loading || loadingDados">
+        @if (loading) { Salvando... } @else { Salvar }
+      </button>
+    </div>
+  </header>
+
+  @if (successMessage) {
+    <div class="alert success">{{ successMessage }}</div>
+  }
+
+  @if (errorMessage) {
+    <div class="alert error">{{ errorMessage }}</div>
+  }
+
+  <section class="card">
+    @if (loadingDados) {
+      <p class="muted">Carregando seus dados...</p>
+    } @else {
+      <form (ngSubmit)="salvar()">
+        <div class="grid">
+          <label>
+            <span>Nome</span>
+            <input [(ngModel)]="form.nome" name="nome" autocomplete="name" />
+          </label>
+
+          <label>
+            <span>E-mail</span>
+            <input
+              [(ngModel)]="form.email"
+              name="email"
+              type="email"
+              autocomplete="email"
+            />
+          </label>
+
+          <label>
+            <span>Nova senha</span>
+            <input
+              [(ngModel)]="form.password"
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              placeholder="Deixe em branco para não alterar"
+            />
+          </label>
+
+          <label>
+            <span>Área de atuação</span>
+            <input [(ngModel)]="form.areaAtuacao" name="areaAtuacao" />
+          </label>
+        </div>
+
+        <p class="hint">
+          O perfil (PROFESSOR) e o ID não são alterados nesta tela.
+        </p>
+
+        <div class="footer">
+          <button type="submit" class="primary" [disabled]="loading">
+            @if (loading) { Salvando... } @else { Salvar alterações }
+          </button>
+        </div>
+      </form>
+    }
+  </section>
+</div>

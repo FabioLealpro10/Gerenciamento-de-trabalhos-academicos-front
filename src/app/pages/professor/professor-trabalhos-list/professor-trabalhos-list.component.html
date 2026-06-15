@@ -1,16 +1,25 @@
 <div class="page">
   <header class="header">
     <div>
-      <h1>Trabalhos da disciplina</h1>
+      <h1 class="titulo-com-icone">
+        <app-icon nome="assignment" [tamanho]="28" />
+        Trabalhos da disciplina
+      </h1>
       <p class="subtitle">{{ tituloDisciplina }}</p>
     </div>
 
     <div class="actions">
+      <a class="profile-link" routerLink="/professor/meus-dados">
+        <app-icon nome="account_circle" [tamanho]="18" />
+        Meus dados
+      </a>
       <button type="button" class="secondary" routerLink="/dashboard">Voltar</button>
       <button type="button" class="ghost" (click)="verAlunosMatriculados()">
+        <app-icon nome="groups" [tamanho]="18" />
         Ver alunos matriculados
       </button>
       <button type="button" class="primary" (click)="irParaCadastro()">
+        <app-icon nome="add" [tamanho]="18" />
         Cadastrar trabalho
       </button>
     </div>
@@ -26,8 +35,36 @@
 
   <section class="card">
     <div class="card-header">
-      <h2>Lista</h2>
+      <div class="card-header-main">
+        <h2>
+          <app-icon nome="list" [tamanho]="22" />
+          Lista
+        </h2>
+        @if (trabalhos.length > 0) {
+          <div class="busca busca-compact">
+            <span class="busca-icone" aria-hidden="true"></span>
+            <input
+              [(ngModel)]="pesquisaLocal"
+              name="pesquisaLocal"
+              type="text"
+              placeholder="Pesquisar trabalhos..."
+              autocomplete="off"
+            />
+            @if (pesquisaLocal) {
+              <button
+                type="button"
+                class="busca-limpar"
+                (click)="pesquisaLocal = ''"
+                title="Limpar pesquisa"
+              >
+                ✕
+              </button>
+            }
+          </div>
+        }
+      </div>
       <button type="button" class="ghost" (click)="carregar()" [disabled]="loading">
+        <app-icon nome="refresh" [tamanho]="18" />
         Atualizar
       </button>
     </div>
@@ -36,6 +73,8 @@
       <p class="muted">Carregando...</p>
     } @else if (trabalhos.length === 0) {
       <p class="muted">Nenhum trabalho cadastrado nesta disciplina.</p>
+    } @else if (trabalhosFiltrados.length === 0) {
+      <p class="muted">Nenhum trabalho encontrado para esta pesquisa.</p>
     } @else {
       <div class="table-wrap">
         <table>
@@ -50,7 +89,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (trabalho of trabalhos; track trabalho.id ?? trabalho.titulo) {
+            @for (trabalho of trabalhosFiltrados; track trabalho.id ?? trabalho.titulo) {
               <tr>
                 <td>
                   <strong>{{ trabalho.titulo }}</strong>
@@ -63,6 +102,7 @@
                 <td>
                   @if (trabalho.caminhoArquivoPdf) {
                     <button type="button" class="ghost" (click)="abrirPdf(trabalho)">
+                      <app-icon nome="picture_as_pdf" [tamanho]="18" />
                       Abrir PDF
                     </button>
                   } @else {
@@ -71,6 +111,7 @@
                 </td>
                 <td>
                   <button type="button" class="ghost" (click)="verEntregas(trabalho)">
+                    <app-icon nome="inbox" [tamanho]="18" />
                     Ver entregas
                   </button>
                 </td>

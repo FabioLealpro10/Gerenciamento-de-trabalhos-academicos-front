@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize, switchMap } from 'rxjs';
 import { FEATURES } from '../../core/config/features.config';
@@ -10,12 +11,14 @@ import { AlunoContextService } from '../../core/services/aluno-context.service';
 import { DisciplinaListItem } from '../../core/models/disciplina.model';
 import { FeatureItem, TipoUsuario } from '../../core/models/user.model';
 import { mensagemErroHttp } from '../../core/utils/http-error.util';
+import { filtrarPorTextoLocal } from '../../core/utils/local-search.util';
 import { DataBrPipe } from '../../shared/pipes/data-br.pipe';
+import { MaterialIconComponent } from '../../shared/icons/material-icon.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [DataBrPipe],
+  imports: [DataBrPipe, RouterLink, FormsModule, MaterialIconComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -27,12 +30,23 @@ export class DashboardComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  usuario = this.authService.getUsuario();
+  get usuario() {
+    return this.authService.getUsuario();
+  }
+
   tipoUsuario: TipoUsuario | null = null;
   funcionalidades: FeatureItem[] = [];
   disciplinas: DisciplinaListItem[] = [];
   loadingDisciplinas = false;
   errorMessage = '';
+  pesquisaDisciplinas = '';
+
+  get disciplinasFiltradas(): DisciplinaListItem[] {
+    return filtrarPorTextoLocal(this.disciplinas, this.pesquisaDisciplinas, [
+      (d) => d.nome,
+      (d) => d.professor,
+    ]);
+  }
 
   get ehProfessor(): boolean {
     return this.tipoUsuario === 'PROFESSOR';
@@ -40,6 +54,20 @@ export class DashboardComponent implements OnInit {
 
   get ehAluno(): boolean {
     return this.tipoUsuario === 'ALUNO';
+  }
+
+  get ehAdmin(): boolean {
+    return this.tipoUsuario === 'ADMIN';
+  }
+
+  get rotaMeusDados(): string {
+    if (this.ehProfessor) {
+      return '/professor/meus-dados';
+    }
+    if (this.ehAluno) {
+      return '/aluno/meus-dados';
+    }
+    return '/admin/meus-dados';
   }
 
   ngOnInit(): void {
@@ -62,8 +90,10 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    this.funcionalidades = FEATURES.filter((feature) =>
-      feature.roles.includes(tipo),
+    this.funcionalidades = FEATURES.filter(
+      (feature) =>
+        feature.roles.includes(tipo) &&
+        (!feature.superAdminOnly || this.authService.isAdminMaster()),
     );
   }
 
@@ -151,6 +181,10 @@ export class DashboardComponent implements OnInit {
       });
   }
 
+  limparPesquisaDisciplinas(): void {
+    this.pesquisaDisciplinas = '';
+  }
+
   abrirDisciplina(disciplina: DisciplinaListItem): void {
     if (disciplina.id == null) {
       this.errorMessage = 'Esta disciplina não possui ID.';
@@ -199,6 +233,7 @@ export class DashboardComponent implements OnInit {
 
   abrirFuncionalidade(feature: FeatureItem): void {
     const rotas: Record<string, string> = {
+      admins: '/admins',
       usuarios: '/alunos',
       alunos: '/alunos',
       professores: '/professores',

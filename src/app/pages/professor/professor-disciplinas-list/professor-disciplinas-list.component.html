@@ -1,11 +1,18 @@
 <div class="page">
   <header class="header">
     <div>
-      <h1>Minhas Disciplinas</h1>
+      <h1 class="titulo-com-icone">
+        <app-icon nome="menu_book" [tamanho]="28" />
+        Minhas Disciplinas
+      </h1>
       <p class="subtitle">Disciplinas que você ministra</p>
     </div>
 
     <div class="actions">
+      <a class="profile-link" routerLink="/professor/meus-dados">
+        <app-icon nome="account_circle" [tamanho]="18" />
+        Meus dados
+      </a>
       <button type="button" class="secondary" routerLink="/dashboard">Voltar</button>
     </div>
   </header>
@@ -16,8 +23,36 @@
 
   <section class="card">
     <div class="card-header">
-      <h2>Lista</h2>
+      <div class="card-header-main">
+        <h2>
+          <app-icon nome="list" [tamanho]="22" />
+          Lista
+        </h2>
+        @if (disciplinas.length > 0) {
+          <div class="busca busca-compact">
+            <span class="busca-icone" aria-hidden="true"></span>
+            <input
+              [(ngModel)]="pesquisaLocal"
+              name="pesquisaLocal"
+              type="text"
+              placeholder="Pesquisar disciplinas..."
+              autocomplete="off"
+            />
+            @if (pesquisaLocal) {
+              <button
+                type="button"
+                class="busca-limpar"
+                (click)="pesquisaLocal = ''"
+                title="Limpar pesquisa"
+              >
+                ✕
+              </button>
+            }
+          </div>
+        }
+      </div>
       <button type="button" class="ghost" (click)="carregar()" [disabled]="loading">
+        <app-icon nome="refresh" [tamanho]="18" />
         Atualizar
       </button>
     </div>
@@ -26,6 +61,8 @@
       <p class="muted">Carregando...</p>
     } @else if (disciplinas.length === 0) {
       <p class="muted">Nenhuma disciplina vinculada ao seu perfil.</p>
+    } @else if (disciplinasFiltradas.length === 0) {
+      <p class="muted">Nenhuma disciplina encontrada para esta pesquisa.</p>
     } @else {
       <div class="table-wrap">
         <table>
@@ -39,18 +76,20 @@
             </tr>
           </thead>
           <tbody>
-            @for (disciplina of disciplinas; track disciplina.id ?? disciplina.nome) {
+            @for (disciplina of disciplinasFiltradas; track disciplina.id ?? disciplina.nome) {
               <tr>
                 <td>{{ disciplina.nome }}</td>
                 <td>{{ disciplina.dataInicio | dataBr }}</td>
                 <td>{{ disciplina.dataFim | dataBr }}</td>
                 <td>
                   <button type="button" class="ghost" (click)="verAlunosMatriculados(disciplina)">
+                    <app-icon nome="groups" [tamanho]="18" />
                     Ver alunos
                   </button>
                 </td>
                 <td>
                   <button type="button" class="ghost" (click)="gerenciarTrabalhos(disciplina)">
+                    <app-icon nome="assignment" [tamanho]="18" />
                     Gerenciar trabalhos
                   </button>
                 </td>

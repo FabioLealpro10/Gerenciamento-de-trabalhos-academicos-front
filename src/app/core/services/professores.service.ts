@@ -57,6 +57,16 @@ export class ProfessoresService {
       );
   }
 
+  buscarPorId(id: number | string): Observable<ProfessorListItem> {
+    return this.http
+      .get<unknown>(`${API_URL}/${id}`, { headers: this.auth.getAuthHeaders() })
+      .pipe(
+        map((body) =>
+          this.normalizarProfessor(body as Record<string, unknown>),
+        ),
+      );
+  }
+
   cadastrar(payload: ProfessorCreateRequest): Observable<unknown> {
     return this.http.post(API_URL, payload, {
       headers: this.auth.getAuthHeaders(),

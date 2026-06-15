@@ -1,3 +1,5 @@
+import { AlunoUpdateRequest } from '../models/aluno.model';
+
 export interface AlunoFormFields {
   nome: string;
   email: string;
@@ -50,6 +52,45 @@ export function validarEdicaoAluno(form: AlunoFormFields): string | null {
   }
 
   return null;
+}
+
+export function validarEdicaoAlunoPerfil(
+  form: Pick<AlunoFormFields, 'nome' | 'email' | 'password'>,
+): string | null {
+  if (!campoPreenchido(form.nome)) {
+    return 'Preencha o nome.';
+  }
+
+  if (!campoPreenchido(form.email)) {
+    return 'Preencha o email.';
+  }
+
+  const senha = form.password.trim();
+  if (senha.length > 0 && senha.length < 8) {
+    return 'Se informar senha, use no mínimo 8 caracteres.';
+  }
+
+  return null;
+}
+
+export function montarPayloadEdicaoAluno(
+  id: number | string,
+  form: AlunoFormFields & { role?: string },
+): AlunoUpdateRequest {
+  const payload: AlunoUpdateRequest = {
+    id: Number(id),
+    nome: form.nome.trim(),
+    email: form.email.trim(),
+    role: form.role ?? 'ALUNO',
+    turma: form.turma.trim(),
+  };
+
+  const senha = form.password.trim();
+  if (senha.length >= 8) {
+    payload.password = senha;
+  }
+
+  return payload;
 }
 
 function campoPreenchido(valor: string): boolean {

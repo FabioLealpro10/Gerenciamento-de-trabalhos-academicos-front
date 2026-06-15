@@ -10,6 +10,8 @@ import {
   Usuario,
 } from '../models/user.model';
 
+/** ID do administrador principal com permissão de gerenciar outros admins. */
+export const ADMIN_MASTER_ID = 1;
 const TOKEN_KEY = 'token';
 const USER_KEY = 'usuario';
 const API_URL = AUTH_LOGIN_URL;
@@ -129,6 +131,15 @@ export class AuthService {
     return this.getUsuario()?.tipo ?? null;
   }
 
+  isAdminMaster(): boolean {
+    if (this.getTipoUsuario() !== 'ADMIN') {
+      return false;
+    }
+
+    const id = this.getUsuarioId();
+    return id != null && Number(id) === ADMIN_MASTER_ID;
+  }
+
   getUsuarioId(): number | string | null {
     const id = this.getUsuario()?.id;
     if (id != null) {
@@ -136,6 +147,21 @@ export class AuthService {
     }
 
     return this.getIdFromToken();
+  }
+
+  atualizarDadosUsuario(dados: Partial<Pick<Usuario, 'nome' | 'email'>>): void {
+    const usuario = this.getUsuario();
+    if (!usuario) {
+      return;
+    }
+
+    const atualizado: Usuario = {
+      ...usuario,
+      ...dados,
+    };
+
+    this.usuarioAtual = atualizado;
+    this.getStorage()?.setItem(USER_KEY, JSON.stringify(atualizado));
   }
 
   /** ID do usuário dentro do JWT (quando o login não devolve id no JSON). */
