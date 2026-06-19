@@ -32,13 +32,6 @@
             <app-icon nome="menu_book" [tamanho]="26" />
             Minhas disciplinas
           </h2>
-          <p class="section-description">
-            @if (ehProfessor) {
-              Disciplinas que você ministra. Clique em um card para gerenciar os trabalhos.
-            } @else {
-              Disciplinas em que você está matriculado. Clique para ver os trabalhos e entregar.
-            }
-          </p>
         </div>
 
         <div class="section-tools">
@@ -142,9 +135,6 @@
         <app-icon nome="dashboard" [tamanho]="26" />
         Gestão do sistema
       </h2>
-      <p class="section-description">
-        Cadastros, listagens e acompanhamento dos recursos acadêmicos.
-      </p>
 
       @if (funcionalidades.length === 0) {
         <p class="empty-message">Nenhuma funcionalidade disponível para este perfil.</p>

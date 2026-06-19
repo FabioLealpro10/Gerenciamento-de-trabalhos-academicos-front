@@ -162,7 +162,7 @@ export class AuthService {
       return 'Não foi possível conectar ao servidor. Verifique se a API está em execução.';
     }
 
-    return 'Erro ao realizar login. Tente novamente.';
+    return 'Falha de autenticação';
   }
 
   logout(): void {
