@@ -8,11 +8,12 @@ import { AuthService } from '../../../core/services/auth.service';
 import { AdminCreateRequest } from '../../../core/models/admin.model';
 import { validarCadastroAdmin } from '../../../core/utils/admin-form.validation';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { CampoSenhaComponent } from '../../../shared/campo-senha/campo-senha.component';
 
 @Component({
   selector: 'app-admins-create',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CampoSenhaComponent],
   templateUrl: './admins-create.component.html',
   styleUrl: './admins-create.component.css',
 })

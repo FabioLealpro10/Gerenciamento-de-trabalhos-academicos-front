@@ -8,13 +8,14 @@ import { AlunosService } from '../../../core/services/alunos.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UsuarioListItem } from '../../../core/models/aluno.model';
 import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
-import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { mensagemErroHttp, mensagemRespostaApi } from '../../../core/utils/http-error.util';
 import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
+import { ConfirmacaoExclusaoComponent } from '../../../shared/confirmacao-exclusao/confirmacao-exclusao.component';
 
 @Component({
   selector: 'app-alunos-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, PaginacaoComponent],
+  imports: [RouterLink, FormsModule, PaginacaoComponent, ConfirmacaoExclusaoComponent],
   templateUrl: './alunos-list.component.html',
   styleUrl: './alunos-list.component.css',
 })
@@ -34,6 +35,9 @@ export class AlunosListComponent implements OnInit {
   totalPages = 0;
   totalElements = 0;
   pesquisa = '';
+  confirmacaoAberta = false;
+  confirmacaoDetalhe = '';
+  private alunoPendenteExclusao: UsuarioListItem | null = null;
 
   private readonly pesquisaDigitada$ = new Subject<string>();
 
@@ -151,8 +155,24 @@ export class AlunosListComponent implements OnInit {
       return;
     }
 
-    const confirmar = confirm(`Deseja excluir o aluno "${aluno.nome}"?`);
-    if (!confirmar) {
+    this.alunoPendenteExclusao = aluno;
+    this.confirmacaoDetalhe = `Aluno: ${aluno.nome}`;
+    this.confirmacaoAberta = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelarExclusao(): void {
+    this.confirmacaoAberta = false;
+    this.alunoPendenteExclusao = null;
+    this.confirmacaoDetalhe = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmarExclusao(): void {
+    const aluno = this.alunoPendenteExclusao;
+    this.cancelarExclusao();
+
+    if (!aluno?.id) {
       return;
     }
 
@@ -177,8 +197,11 @@ export class AlunosListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: () => {
-          this.successMessage = 'Aluno excluído com sucesso!';
+        next: (resposta) => {
+          this.successMessage = mensagemRespostaApi(
+            resposta,
+            'Aluno excluído com sucesso!',
+          );
           this.carregar();
         },
         error: (err: HttpErrorResponse) => {

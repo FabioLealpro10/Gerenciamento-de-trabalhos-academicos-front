@@ -9,6 +9,7 @@ import {
   MatriculaRequest,
 } from '../models/disciplina.model';
 import { PageQuery, PageResult } from '../models/page.model';
+import { MensagemResponse } from '../models/api-response.model';
 import { extrairListaApi, extrairPaginaApi } from '../utils/api-list.util';
 import { AuthService } from './auth.service';
 
@@ -136,8 +137,8 @@ export class DisciplinasService {
     });
   }
 
-  excluir(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${id}`, {
+  excluir(id: number | string): Observable<MensagemResponse> {
+    return this.http.delete<MensagemResponse>(`${API_URL}/${id}`, {
       headers: this.auth.getAuthHeaders(),
     });
   }
@@ -198,8 +199,8 @@ export class DisciplinasService {
   desmatricular(
     alunoId: number | string,
     disciplinaId: number | string,
-  ): Observable<void> {
-    return this.http.delete<void>(
+  ): Observable<MensagemResponse> {
+    return this.http.delete<MensagemResponse>(
       `${API_URL}/matricular/aluno/${alunoId}/disciplina/${disciplinaId}`,
       {
         headers: this.auth.getAuthHeaders(),

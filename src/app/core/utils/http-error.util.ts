@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 
+export const MENSAGEM_SESSAO_EXPIRADA = 'Sessão expirada. Faça login novamente.';
+
 export function mensagemErroHttp(
   erro: HttpErrorResponse,
   opcoes: {
@@ -12,10 +14,9 @@ export function mensagemErroHttp(
   const status = erro.status;
 
   if (status === 0) {
-    return 'Não foi possível conectar ao servidor. Verifique se a API está em execução.';
+    return 'Não foi possível conectar ao servidor.';
   }
 
-  // Mensagem de e-mail duplicado só faz sentido para cadastros de usuários
   const entidadeComEmail = ['aluno', 'professor', 'usuário', 'usuario'].some(
     (nome) => opcoes.entidade.toLowerCase().includes(nome),
   );
@@ -38,7 +39,10 @@ export function mensagemErroHttp(
     return 'Este e-mail já está em uso por outro usuário.';
   }
 
-  // Mensagem enviada pelo backend (ex.: "Arquivo PDF excede o limite de 8 MB")
+  if (isErroSessaoInvalida(erro)) {
+    return MENSAGEM_SESSAO_EXPIRADA;
+  }
+
   const mensagemBackend = extrairMensagemBackend(erro);
   if (mensagemBackend) {
     return mensagemBackend;
@@ -46,32 +50,39 @@ export function mensagemErroHttp(
 
   if (status === 401 || status === 403) {
     if (!opcoes.temToken) {
-      return 'Token não encontrado. Faça logout, login novamente como ADMIN e tente de novo.';
+      return MENSAGEM_SESSAO_EXPIRADA;
     }
 
-    if (opcoes.contexto === 'listar') {
-      return `Acesso negado ao listar ${opcoes.entidade}. Faça login como ADMIN (o token precisa ser enviado no header Authorization).`;
-    }
-
-    return `Acesso negado. Faça login como ADMIN — o token foi enviado, mas a API recusou a operação.`;
+    return 'Acesso negado.';
   }
 
   if (opcoes.contexto === 'listar') {
-    return `Erro ao carregar ${opcoes.entidade}. Verifique se a API está em execução.`;
+    return `Erro ao carregar ${opcoes.entidade}.`;
   }
 
   if (opcoes.contexto === 'excluir') {
-    return `Erro ao excluir ${opcoes.entidade}. Tente novamente.`;
+    return `Erro ao excluir ${opcoes.entidade}.`;
   }
 
-  return `Erro ao salvar ${opcoes.entidade}. Verifique os dados e tente novamente.`;
+  return `Erro ao salvar ${opcoes.entidade}.`;
 }
 
-function extrairMensagemBackend(erro: HttpErrorResponse): string | null {
-  const corpo = erro.error;
+export function extrairMensagemApi(corpo: unknown): string | null {
+  if (typeof corpo === 'string') {
+    const texto = corpo.trim();
+    if (!texto) {
+      return null;
+    }
 
-  if (typeof corpo === 'string' && corpo.trim()) {
-    return corpo.trim();
+    if (texto.startsWith('{') || texto.startsWith('[')) {
+      try {
+        return extrairMensagemApi(JSON.parse(texto));
+      } catch {
+        return texto;
+      }
+    }
+
+    return texto;
   }
 
   if (corpo && typeof corpo === 'object') {
@@ -85,4 +96,44 @@ function extrairMensagemBackend(erro: HttpErrorResponse): string | null {
   }
 
   return null;
+}
+
+export function isMensagemAcessoNegado(mensagem: string | null | undefined): boolean {
+  if (!mensagem) {
+    return false;
+  }
+
+  const normalizada = mensagem.trim().toLowerCase();
+  return (
+    normalizada.includes('access denied') ||
+    normalizada.includes('acesso negado') ||
+    normalizada.includes('token expirado') ||
+    normalizada.includes('token inválido') ||
+    normalizada.includes('token invalido') ||
+    normalizada.includes('sessão expirada') ||
+    normalizada.includes('sessao expirada')
+  );
+}
+
+export function isErroSessaoInvalida(erro: HttpErrorResponse): boolean {
+  if (erro.status === 401) {
+    return true;
+  }
+
+  if (erro.status === 403) {
+    return isMensagemAcessoNegado(extrairMensagemApi(erro.error));
+  }
+
+  return false;
+}
+
+export function mensagemRespostaApi(
+  resposta: unknown,
+  fallback = '',
+): string {
+  return extrairMensagemApi(resposta) ?? fallback;
+}
+
+function extrairMensagemBackend(erro: HttpErrorResponse): string | null {
+  return extrairMensagemApi(erro.error);
 }

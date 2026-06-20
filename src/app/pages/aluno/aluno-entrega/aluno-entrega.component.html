@@ -21,17 +21,6 @@
   <div class="alert error">{{ errorMessage }}</div>
   }
 
-  @if (!loadingDados && jaEntregou && foiCorrigido) {
-  <div class="alert info">
-    Esta entrega já foi corrigida pelo professor e não pode mais ser alterada.
-  </div>
-  }
-
-  @if (!loadingDados && jaEntregou && !foiCorrigido && !prazoExpirado) {
-  <div class="alert info">
-    Você já entregou este trabalho. Pode substituir o PDF abaixo até o prazo final de entrega.
-  </div>
-  }
   @if (!loadingDados && prazoExpirado) {
   <div class="alert error">
     O prazo para entrega deste trabalho já foi encerrado.
@@ -94,15 +83,10 @@
     @if (loadingDados) {
     <p class="muted">Carregando...</p>
     } @else {
-    <p class="info-data">
-      A data da entrega será registrada automaticamente:
-      <strong>{{ dataEntregaAutomatica | dataBr }}</strong>
-    </p>
-
     <form (ngSubmit)="salvar()">
       <div class="grid">
         <div class="full campo-arquivo">
-          <span class="rotulo">Arquivo da entrega (PDF até 8 MB)</span>
+          <span class="rotulo">Arquivo</span>
 
           <div
             class="dropzone"
@@ -123,19 +107,11 @@
 
             @if (arquivoSelecionado) {
             <p class="dropzone-titulo">{{ nomeArquivo }}</p>
-            <p class="dropzone-dica">
-              @if (jaEntregou) {
-              Este arquivo vai substituir a entrega atual ao salvar
-              } @else {
-              Arraste outro PDF para substituir ou clique para escolher
-              }
-            </p>
             <button type="button" class="remover" (click)="removerArquivo(); $event.stopPropagation()">
               Remover arquivo
             </button>
             } @else {
-            <p class="dropzone-titulo">Arraste o PDF para cá</p>
-            <p class="dropzone-dica">ou clique para selecionar o arquivo (máx. 8 MB)</p>
+            <p class="dropzone-titulo">Selecionar PDF</p>
             }
           </div>
 

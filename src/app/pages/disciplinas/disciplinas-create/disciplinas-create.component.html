@@ -6,14 +6,6 @@
 
     <div class="actions">
       <button type="button" class="secondary" routerLink="/disciplinas">Voltar</button>
-      <button
-        type="button"
-        class="primary"
-        (click)="salvar()"
-        [disabled]="loading || loadingProfessores || professores.length === 0"
-      >
-        @if (loading) { Salvando... } @else { Salvar }
-      </button>
     </div>
   </header>
 

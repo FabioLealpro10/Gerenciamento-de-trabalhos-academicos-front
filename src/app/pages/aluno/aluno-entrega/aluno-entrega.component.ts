@@ -94,20 +94,15 @@ export class AlunoEntregaComponent implements OnInit {
       return false;
     }
 
-    // Data atual (sem horas)
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
 
-    // Converter yyyy-MM-dd para Date local
     const [ano, mes, dia] = this.trabalho.dataFim
       .split('-')
       .map(Number);
 
     const prazo = new Date(ano, mes - 1, dia);
     prazo.setHours(23, 59, 59, 999);
-
-    console.log('Hoje:', hoje);
-    console.log('Prazo:', prazo);
 
     return hoje > prazo;
   }
@@ -323,8 +318,8 @@ export class AlunoEntregaComponent implements OnInit {
 
     if (!this.arquivoSelecionado) {
       this.errorMessage = this.jaEntregou
-        ? 'Selecione o novo PDF que vai substituir a sua entrega (arraste para a área de envio ou clique nela).'
-        : 'Selecione o arquivo PDF da entrega (arraste para a área de envio ou clique nela).';
+        ? 'Selecione o novo PDF da entrega.'
+        : 'Selecione o arquivo PDF da entrega.';
       this.cdr.detectChanges();
       return;
     }

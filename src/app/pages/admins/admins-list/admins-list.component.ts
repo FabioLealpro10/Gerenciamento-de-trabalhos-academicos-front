@@ -8,13 +8,14 @@ import { AdminsService } from '../../../core/services/admins.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AdminListItem } from '../../../core/models/admin.model';
 import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
-import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { mensagemErroHttp, mensagemRespostaApi } from '../../../core/utils/http-error.util';
 import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
+import { ConfirmacaoExclusaoComponent } from '../../../shared/confirmacao-exclusao/confirmacao-exclusao.component';
 
 @Component({
   selector: 'app-admins-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, PaginacaoComponent],
+  imports: [RouterLink, FormsModule, PaginacaoComponent, ConfirmacaoExclusaoComponent],
   templateUrl: './admins-list.component.html',
   styleUrl: './admins-list.component.css',
 })
@@ -33,6 +34,9 @@ export class AdminsListComponent implements OnInit {
   paginacao: PageQuery = { ...PAGINA_INICIAL };
   totalPages = 0;
   totalElements = 0;
+  confirmacaoAberta = false;
+  confirmacaoDetalhe = '';
+  private adminPendenteExclusao: AdminListItem | null = null;
 
   ngOnInit(): void {
     if (!this.authService.isAdminMaster()) {
@@ -137,10 +141,24 @@ export class AdminsListComponent implements OnInit {
       return;
     }
 
-    const confirmar = confirm(
-      `Deseja excluir o administrador "${admin.nome}"?`,
-    );
-    if (!confirmar) {
+    this.adminPendenteExclusao = admin;
+    this.confirmacaoDetalhe = `Administrador: ${admin.nome}`;
+    this.confirmacaoAberta = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelarExclusao(): void {
+    this.confirmacaoAberta = false;
+    this.adminPendenteExclusao = null;
+    this.confirmacaoDetalhe = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmarExclusao(): void {
+    const admin = this.adminPendenteExclusao;
+    this.cancelarExclusao();
+
+    if (!admin?.id) {
       return;
     }
 
@@ -158,8 +176,11 @@ export class AdminsListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: () => {
-          this.successMessage = 'Administrador excluído com sucesso!';
+        next: (resposta) => {
+          this.successMessage = mensagemRespostaApi(
+            resposta,
+            'Administrador excluído com sucesso!',
+          );
           this.carregar();
         },
         error: (err: HttpErrorResponse) => {

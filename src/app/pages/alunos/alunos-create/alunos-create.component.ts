@@ -12,11 +12,12 @@ import {
   montarPayloadEdicaoAluno,
 } from '../../../core/utils/aluno-form.validation';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { CampoSenhaComponent } from '../../../shared/campo-senha/campo-senha.component';
 
 @Component({
   selector: 'app-alunos-create',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CampoSenhaComponent],
   templateUrl: './alunos-create.component.html',
   styleUrl: './alunos-create.component.css',
 })

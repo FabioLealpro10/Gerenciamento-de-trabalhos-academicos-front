@@ -6,9 +6,6 @@
 
     <div class="actions">
       <button type="button" class="secondary" routerLink="/admins">Voltar</button>
-      <button type="button" class="primary" (click)="salvar()" [disabled]="loading">
-        @if (loading) { Salvando... } @else { Salvar }
-      </button>
     </div>
   </header>
 
@@ -40,10 +37,9 @@
 
         <label class="full">
           <span>Senha</span>
-          <input
-            [(ngModel)]="form.password"
+          <app-campo-senha
             name="password"
-            type="password"
+            [(valor)]="form.password"
             autocomplete="new-password"
           />
         </label>

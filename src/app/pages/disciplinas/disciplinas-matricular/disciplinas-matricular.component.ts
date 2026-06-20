@@ -9,15 +9,16 @@ import { AuthService } from '../../../core/services/auth.service';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { UsuarioListItem } from '../../../core/models/aluno.model';
 import { PAGINA_INICIAL } from '../../../core/models/page.model';
-import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { mensagemErroHttp, mensagemRespostaApi } from '../../../core/utils/http-error.util';
 import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 import { SelecaoPesquisaComponent } from '../../../shared/selecao-pesquisa/selecao-pesquisa.component';
 import { OpcaoSelecao } from '../../../shared/selecao-pesquisa/opcao-selecao.model';
+import { ConfirmacaoExclusaoComponent } from '../../../shared/confirmacao-exclusao/confirmacao-exclusao.component';
 
 @Component({
   selector: 'app-disciplinas-matricular',
   standalone: true,
-  imports: [FormsModule, RouterLink, DataBrPipe, SelecaoPesquisaComponent],
+  imports: [FormsModule, RouterLink, DataBrPipe, SelecaoPesquisaComponent, ConfirmacaoExclusaoComponent],
   templateUrl: './disciplinas-matricular.component.html',
   styleUrl: './disciplinas-matricular.component.css',
 })
@@ -41,6 +42,9 @@ export class DisciplinasMatricularComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   pesquisaMatriculados = '';
+  confirmacaoAberta = false;
+  confirmacaoDetalhe = '';
+  private alunoPendenteRemocao: UsuarioListItem | null = null;
 
   get opcoesAlunos(): OpcaoSelecao[] {
     return this.alunosDisponiveis.map((aluno) => ({
@@ -81,11 +85,24 @@ export class DisciplinasMatricularComponent implements OnInit {
       return;
     }
 
-    if (
-      !confirm(
-        `Deseja remover a matrícula do aluno ${aluno.nome}?`
-      )
-    ) {
+    this.alunoPendenteRemocao = aluno;
+    this.confirmacaoDetalhe = `Aluno: ${aluno.nome}`;
+    this.confirmacaoAberta = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelarExclusao(): void {
+    this.confirmacaoAberta = false;
+    this.alunoPendenteRemocao = null;
+    this.confirmacaoDetalhe = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmarExclusao(): void {
+    const aluno = this.alunoPendenteRemocao;
+    this.cancelarExclusao();
+
+    if (!this.disciplinaId || aluno?.id == null) {
       return;
     }
 
@@ -105,9 +122,11 @@ export class DisciplinasMatricularComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: () => {
-          this.successMessage =
-            'Matrícula removida com sucesso!';
+        next: (resposta) => {
+          this.successMessage = mensagemRespostaApi(
+            resposta,
+            'Matrícula removida com sucesso!',
+          );
 
           this.carregarDados();
         },

@@ -3,10 +3,7 @@
     <header class="dashboard-header">
       <div>
         <h1>Olá, {{ usuario.nome }}</h1>
-        <p>
-          Perfil:
-          <span class="badge">{{ getTipoLabel(usuario.tipo) }}</span>
-        </p>
+        <span class="badge">{{ getTipoLabel(usuario.tipo) }}</span>
       </div>
 
       <div class="header-actions">
@@ -146,7 +143,6 @@
                 <app-icon [nome]="feature.icone" [tamanho]="28" />
               </div>
               <h3>{{ feature.titulo }}</h3>
-              <p>{{ feature.descricao }}</p>
               <button type="button" (click)="abrirFuncionalidade(feature)">
                 <app-icon nome="arrow_forward" [tamanho]="18" />
                 Acessar

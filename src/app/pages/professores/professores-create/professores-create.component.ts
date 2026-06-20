@@ -15,11 +15,12 @@ import {
   montarPayloadEdicaoProfessor,
 } from '../../../core/utils/professor-form.validation';
 import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { CampoSenhaComponent } from '../../../shared/campo-senha/campo-senha.component';
 
 @Component({
   selector: 'app-professores-create',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CampoSenhaComponent],
   templateUrl: './professores-create.component.html',
   styleUrl: './professores-create.component.css',
 })

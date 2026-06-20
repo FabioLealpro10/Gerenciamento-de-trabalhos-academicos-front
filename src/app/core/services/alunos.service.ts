@@ -8,6 +8,7 @@ import {
   UsuarioListItem,
 } from '../models/aluno.model';
 import { PageQuery, PageResult } from '../models/page.model';
+import { MensagemResponse } from '../models/api-response.model';
 import { extrairListaApi, extrairPaginaApi } from '../utils/api-list.util';
 import { AuthService } from './auth.service';
 
@@ -79,8 +80,8 @@ export class AlunosService {
     });
   }
 
-  excluir(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${id}`, {
+  excluir(id: number | string): Observable<MensagemResponse> {
+    return this.http.delete<MensagemResponse>(`${API_URL}/${id}`, {
       headers: this.auth.getAuthHeaders(),
     });
   }

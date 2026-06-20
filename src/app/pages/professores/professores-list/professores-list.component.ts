@@ -8,13 +8,14 @@ import { ProfessoresService } from '../../../core/services/professores.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProfessorListItem } from '../../../core/models/professor.model';
 import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
-import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { mensagemErroHttp, mensagemRespostaApi } from '../../../core/utils/http-error.util';
 import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
+import { ConfirmacaoExclusaoComponent } from '../../../shared/confirmacao-exclusao/confirmacao-exclusao.component';
 
 @Component({
   selector: 'app-professores-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, PaginacaoComponent],
+  imports: [RouterLink, FormsModule, PaginacaoComponent, ConfirmacaoExclusaoComponent],
   templateUrl: './professores-list.component.html',
   styleUrl: './professores-list.component.css',
 })
@@ -34,6 +35,9 @@ export class ProfessoresListComponent implements OnInit {
   totalPages = 0;
   totalElements = 0;
   pesquisa = '';
+  confirmacaoAberta = false;
+  confirmacaoDetalhe = '';
+  private professorPendenteExclusao: ProfessorListItem | null = null;
 
   private readonly pesquisaDigitada$ = new Subject<string>();
 
@@ -151,8 +155,24 @@ export class ProfessoresListComponent implements OnInit {
       return;
     }
 
-    const confirmar = confirm(`Deseja excluir o professor "${professor.nome}"?`);
-    if (!confirmar) {
+    this.professorPendenteExclusao = professor;
+    this.confirmacaoDetalhe = `Professor: ${professor.nome}`;
+    this.confirmacaoAberta = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelarExclusao(): void {
+    this.confirmacaoAberta = false;
+    this.professorPendenteExclusao = null;
+    this.confirmacaoDetalhe = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmarExclusao(): void {
+    const professor = this.professorPendenteExclusao;
+    this.cancelarExclusao();
+
+    if (!professor?.id) {
       return;
     }
 
@@ -177,8 +197,11 @@ export class ProfessoresListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: () => {
-          this.successMessage = 'Professor excluído com sucesso!';
+        next: (resposta) => {
+          this.successMessage = mensagemRespostaApi(
+            resposta,
+            'Professor excluído com sucesso!',
+          );
           this.carregar();
         },
         error: (err: HttpErrorResponse) => {

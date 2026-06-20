@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { isErroSessaoInvalida } from '../utils/http-error.util';
 
 const PREFIXOS_COM_TOKEN = [
   '/api',
@@ -64,9 +65,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }),
   ).pipe(
     catchError((erro: unknown) => {
-      // Token inválido/expirado (ex.: API reiniciada): limpa a sessão e
-      // volta para o login em vez de deixar a tela com erros confusos
-      if (erro instanceof HttpErrorResponse && erro.status === 401) {
+      // Token inválido/expirado: limpa a sessão e volta para o login
+      if (erro instanceof HttpErrorResponse && isErroSessaoInvalida(erro)) {
         auth.logout();
         void router.navigate(['/login']);
       }

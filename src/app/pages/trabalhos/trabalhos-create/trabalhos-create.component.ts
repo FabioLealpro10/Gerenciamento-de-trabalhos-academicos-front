@@ -107,15 +107,13 @@ export class TrabalhosCreateComponent implements OnInit {
     }
 
     if (!this.modoEdicao && !this.arquivoSelecionado) {
-      this.errorMessage =
-        'Selecione o arquivo PDF do trabalho (arraste para a área de envio ou clique nela).';
+      this.errorMessage = 'Selecione o arquivo PDF do trabalho.';
       this.cdr.detectChanges();
       return;
     }
 
     if (!this.authService.getToken()) {
-      this.errorMessage =
-        'Token não encontrado. Faça logout, faça login novamente e tente de novo.';
+      this.errorMessage = 'Sessão expirada. Faça login novamente.';
       this.cdr.detectChanges();
       return;
     }
@@ -182,12 +180,6 @@ export class TrabalhosCreateComponent implements OnInit {
           this.router.navigate([destino], { queryParams: { msg } });
         },
         error: (err: HttpErrorResponse) => {
-          console.log('STATUS:', err.status);
-          console.log('MESSAGE:', err.message);
-          console.log('ERROR:', err.error);
-          console.log('URL:', err.url);
-          console.log('COMPLETO:', err);
-
           this.errorMessage = mensagemErroHttp(err, {
             temToken: !!this.authService.getToken(),
             contexto: 'salvar',

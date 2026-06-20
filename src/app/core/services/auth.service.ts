@@ -173,7 +173,42 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    return this.sessaoValida();
+  }
+
+  sessaoValida(): boolean {
+    const token = this.getToken();
+    if (!token) {
+      return false;
+    }
+
+    if (this.isTokenExpirado(token)) {
+      this.logout();
+      return false;
+    }
+
+    return true;
+  }
+
+  isTokenExpirado(token: string): boolean {
+    try {
+      const partes = token.split('.');
+      if (partes.length < 2) {
+        return false;
+      }
+
+      const payload = JSON.parse(this.decodificarBase64Url(partes[1])) as {
+        exp?: number;
+      };
+
+      if (payload.exp == null) {
+        return false;
+      }
+
+      return Date.now() >= payload.exp * 1000;
+    } catch {
+      return false;
+    }
   }
 
   getToken(): string | null {

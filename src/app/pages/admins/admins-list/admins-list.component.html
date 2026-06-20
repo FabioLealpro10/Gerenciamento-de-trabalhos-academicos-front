@@ -82,3 +82,10 @@
     }
   </section>
 </div>
+
+<app-confirmacao-exclusao
+  [aberto]="confirmacaoAberta"
+  [detalhe]="confirmacaoDetalhe"
+  (confirmar)="confirmarExclusao()"
+  (cancelar)="cancelarExclusao()"
+/>

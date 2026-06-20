@@ -8,14 +8,15 @@ import { DisciplinasService } from '../../../core/services/disciplinas.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
-import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { mensagemErroHttp, mensagemRespostaApi } from '../../../core/utils/http-error.util';
 import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
 import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
+import { ConfirmacaoExclusaoComponent } from '../../../shared/confirmacao-exclusao/confirmacao-exclusao.component';
 
 @Component({
   selector: 'app-disciplinas-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, PaginacaoComponent, DataBrPipe],
+  imports: [RouterLink, FormsModule, PaginacaoComponent, DataBrPipe, ConfirmacaoExclusaoComponent],
   templateUrl: './disciplinas-list.component.html',
   styleUrl: './disciplinas-list.component.css',
 })
@@ -35,6 +36,9 @@ export class DisciplinasListComponent implements OnInit {
   totalPages = 0;
   totalElements = 0;
   pesquisa = '';
+  confirmacaoAberta = false;
+  confirmacaoDetalhe = '';
+  private disciplinaPendenteExclusao: DisciplinaListItem | null = null;
 
   private readonly pesquisaDigitada$ = new Subject<string>();
 
@@ -176,8 +180,24 @@ export class DisciplinasListComponent implements OnInit {
       return;
     }
 
-    const confirmar = confirm(`Deseja excluir a disciplina "${disciplina.nome}"?`);
-    if (!confirmar) {
+    this.disciplinaPendenteExclusao = disciplina;
+    this.confirmacaoDetalhe = `Disciplina: ${disciplina.nome}`;
+    this.confirmacaoAberta = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelarExclusao(): void {
+    this.confirmacaoAberta = false;
+    this.disciplinaPendenteExclusao = null;
+    this.confirmacaoDetalhe = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmarExclusao(): void {
+    const disciplina = this.disciplinaPendenteExclusao;
+    this.cancelarExclusao();
+
+    if (!disciplina?.id) {
       return;
     }
 
@@ -202,8 +222,11 @@ export class DisciplinasListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: () => {
-          this.successMessage = 'Disciplina excluída com sucesso!';
+        next: (resposta) => {
+          this.successMessage = mensagemRespostaApi(
+            resposta,
+            'Disciplina excluída com sucesso!',
+          );
           this.carregar();
         },
         error: (err: HttpErrorResponse) => {

@@ -4,6 +4,7 @@ import { map, Observable } from 'rxjs';
 import { TRABALHOS_URL } from '../config/api.config';
 import { TrabalhoListItem } from '../models/trabalho.model';
 import { PageQuery, PageResult } from '../models/page.model';
+import { MensagemResponse } from '../models/api-response.model';
 import { extrairListaApi, extrairPaginaApi } from '../utils/api-list.util';
 import { AuthService } from './auth.service';
 
@@ -104,8 +105,8 @@ export class TrabalhosService {
     );
   }
 
-  excluir(id: number | string): Observable<void> {
-    return this.http.delete<void>(`${API_URL}/${id}`, this.auth.getAuthOptions());
+  excluir(id: number | string): Observable<MensagemResponse> {
+    return this.http.delete<MensagemResponse>(`${API_URL}/${id}`, this.auth.getAuthOptions());
   }
 
   /** Baixa o PDF do trabalho como blob (a rota exige o token no header). */

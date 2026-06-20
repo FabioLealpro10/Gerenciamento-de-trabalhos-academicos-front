@@ -3,13 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { CampoSenhaComponent } from '../../shared/campo-senha/campo-senha.component';
 
 type ModoLogin = 'login' | 'esqueci-email' | 'esqueci-codigo';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CampoSenhaComponent],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -38,18 +39,6 @@ export class LoginComponent {
     }
 
     return 'Login';
-  }
-
-  get subtitulo(): string {
-    if (this.modo === 'esqueci-email') {
-      return 'Informe seu e-mail para receber o código de recuperação.';
-    }
-
-    if (this.modo === 'esqueci-codigo') {
-      return 'Digite o código enviado para o seu e-mail.';
-    }
-
-    return 'Gerenciamento de Trabalhos Acadêmicos';
   }
 
   login(): void {

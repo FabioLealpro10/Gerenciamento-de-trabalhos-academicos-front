@@ -8,16 +8,17 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TrabalhoListItem } from '../../../core/models/trabalho.model';
 import { DisciplinaListItem } from '../../../core/models/disciplina.model';
 import { PAGINA_INICIAL, PageQuery } from '../../../core/models/page.model';
-import { mensagemErroHttp } from '../../../core/utils/http-error.util';
+import { mensagemErroHttp, mensagemRespostaApi } from '../../../core/utils/http-error.util';
 import { filtrarPorTextoLocal } from '../../../core/utils/local-search.util';
 import { PaginacaoComponent } from '../../../shared/paginacao/paginacao.component';
 import { DataBrPipe } from '../../../shared/pipes/data-br.pipe';
 import { MaterialIconComponent } from '../../../shared/icons/material-icon.component';
+import { ConfirmacaoExclusaoComponent } from '../../../shared/confirmacao-exclusao/confirmacao-exclusao.component';
 
 @Component({
   selector: 'app-professor-trabalhos-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, PaginacaoComponent, DataBrPipe, MaterialIconComponent],
+  imports: [RouterLink, FormsModule, PaginacaoComponent, DataBrPipe, MaterialIconComponent, ConfirmacaoExclusaoComponent],
   templateUrl: './professor-trabalhos-list.component.html',
   styleUrl: './professor-trabalhos-list.component.css',
 })
@@ -39,6 +40,9 @@ export class ProfessorTrabalhosListComponent implements OnInit {
   totalPages = 0;
   totalElements = 0;
   pesquisaLocal = '';
+  confirmacaoAberta = false;
+  confirmacaoDetalhe = '';
+  private trabalhoPendenteExclusao: TrabalhoListItem | null = null;
 
   get trabalhosFiltrados(): TrabalhoListItem[] {
     return filtrarPorTextoLocal(this.trabalhos, this.pesquisaLocal, [
@@ -177,8 +181,24 @@ export class ProfessorTrabalhosListComponent implements OnInit {
       return;
     }
 
-    const confirmar = confirm(`Deseja excluir o trabalho "${trabalho.titulo}"?`);
-    if (!confirmar) {
+    this.trabalhoPendenteExclusao = trabalho;
+    this.confirmacaoDetalhe = `Trabalho: ${trabalho.titulo}`;
+    this.confirmacaoAberta = true;
+    this.cdr.detectChanges();
+  }
+
+  cancelarExclusao(): void {
+    this.confirmacaoAberta = false;
+    this.trabalhoPendenteExclusao = null;
+    this.confirmacaoDetalhe = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmarExclusao(): void {
+    const trabalho = this.trabalhoPendenteExclusao;
+    this.cancelarExclusao();
+
+    if (!trabalho?.id) {
       return;
     }
 
@@ -203,8 +223,11 @@ export class ProfessorTrabalhosListComponent implements OnInit {
         }),
       )
       .subscribe({
-        next: () => {
-          this.successMessage = 'Trabalho excluído com sucesso!';
+        next: (resposta) => {
+          this.successMessage = mensagemRespostaApi(
+            resposta,
+            'Trabalho excluído com sucesso!',
+          );
           this.carregar();
         },
         error: (err: HttpErrorResponse) => {
