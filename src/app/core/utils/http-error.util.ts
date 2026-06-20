@@ -39,11 +39,15 @@ export function mensagemErroHttp(
     return 'Este e-mail já está em uso por outro usuário.';
   }
 
+  const mensagemBackend = extrairMensagemBackend(erro);
+  if (mensagemBackend && !isMensagemAutenticacao(mensagemBackend)) {
+    return mensagemBackend;
+  }
+
   if (isErroSessaoInvalida(erro)) {
     return MENSAGEM_SESSAO_EXPIRADA;
   }
 
-  const mensagemBackend = extrairMensagemBackend(erro);
   if (mensagemBackend) {
     return mensagemBackend;
   }
@@ -68,6 +72,10 @@ export function mensagemErroHttp(
 }
 
 export function extrairMensagemApi(corpo: unknown): string | null {
+  if (corpo instanceof Blob) {
+    return null;
+  }
+
   if (typeof corpo === 'string') {
     const texto = corpo.trim();
     if (!texto) {
@@ -78,8 +86,14 @@ export function extrairMensagemApi(corpo: unknown): string | null {
       try {
         return extrairMensagemApi(JSON.parse(texto));
       } catch {
-        return texto;
+        const parcial = extrairMensagemJsonParcial(texto);
+        return parcial ?? texto;
       }
+    }
+
+    const parcial = extrairMensagemJsonParcial(texto);
+    if (parcial) {
+      return parcial;
     }
 
     return texto;
@@ -87,7 +101,7 @@ export function extrairMensagemApi(corpo: unknown): string | null {
 
   if (corpo && typeof corpo === 'object') {
     const dados = corpo as Record<string, unknown>;
-    for (const chave of ['mensagem', 'message', 'error']) {
+    for (const chave of ['mensagem', 'message', 'detail', 'error', 'title']) {
       const valor = dados[chave];
       if (typeof valor === 'string' && valor.trim()) {
         return valor.trim();
@@ -98,21 +112,51 @@ export function extrairMensagemApi(corpo: unknown): string | null {
   return null;
 }
 
-export function isMensagemAcessoNegado(mensagem: string | null | undefined): boolean {
+function extrairMensagemJsonParcial(texto: string): string | null {
+  const match = texto.match(/"mensagem"\s*:\s*"((?:\\.|[^"\\])*)"/i);
+  if (match?.[1]) {
+    return match[1].replace(/\\"/g, '"').trim();
+  }
+
+  const matchMessage = texto.match(/"message"\s*:\s*"((?:\\.|[^"\\])*)"/i);
+  if (matchMessage?.[1]) {
+    return matchMessage[1].replace(/\\"/g, '"').trim();
+  }
+
+  return null;
+}
+
+export function isMensagemAutenticacao(
+  mensagem: string | null | undefined,
+): boolean {
   if (!mensagem) {
     return false;
   }
 
   const normalizada = mensagem.trim().toLowerCase();
-  return (
-    normalizada.includes('access denied') ||
-    normalizada.includes('acesso negado') ||
-    normalizada.includes('token expirado') ||
-    normalizada.includes('token inválido') ||
-    normalizada.includes('token invalido') ||
-    normalizada.includes('sessão expirada') ||
-    normalizada.includes('sessao expirada')
-  );
+  const mensagensAutenticacao = new Set([
+    'access denied',
+    'forbidden',
+    'acesso negado.',
+    'acesso negado',
+    'unauthorized',
+    'nao autorizado',
+    'não autorizado',
+    'token expirado',
+    'token inválido',
+    'token invalido',
+    'sessão expirada',
+    'sessao expirada',
+    'sessão expirada. faça login novamente.',
+    'sessao expirada. faca login novamente.',
+  ]);
+
+  return mensagensAutenticacao.has(normalizada);
+}
+
+/** @deprecated Use isMensagemAutenticacao */
+export function isMensagemAcessoNegado(mensagem: string | null | undefined): boolean {
+  return isMensagemAutenticacao(mensagem);
 }
 
 export function isErroSessaoInvalida(erro: HttpErrorResponse): boolean {
@@ -121,7 +165,12 @@ export function isErroSessaoInvalida(erro: HttpErrorResponse): boolean {
   }
 
   if (erro.status === 403) {
-    return isMensagemAcessoNegado(extrairMensagemApi(erro.error));
+    const mensagem = extrairMensagemApi(erro.error);
+    if (!mensagem) {
+      return true;
+    }
+
+    return isMensagemAutenticacao(mensagem);
   }
 
   return false;
