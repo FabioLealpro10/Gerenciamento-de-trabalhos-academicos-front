@@ -283,6 +283,23 @@ export class AuthService {
     return this.getIdFromToken();
   }
 
+  /** ID da entidade aluno — prioriza idAluno do login/JWT. */
+  getAlunoId(): number | null {
+    const idJwt = this.extrairIdAlunoDoJwt();
+    if (idJwt != null) {
+      return idJwt;
+    }
+
+    if (this.getTipoUsuario() === 'ALUNO') {
+      const id = this.getUsuarioId();
+      if (id != null && !Number.isNaN(Number(id))) {
+        return Number(id);
+      }
+    }
+
+    return null;
+  }
+
   atualizarDadosUsuario(dados: Partial<Pick<Usuario, 'nome' | 'email'>>): void {
     const usuario = this.getUsuario();
     if (!usuario) {
@@ -335,18 +352,39 @@ export class AuthService {
       id = this.extrairIdDoJwt(token) ?? undefined;
     }
 
+    const tipo = this.normalizarTipo(
+      resposta.usuario?.tipo ??
+        resposta.usuario?.role ??
+        resposta.usuario?.tipoUsuario ??
+        resposta.tipo ??
+        resposta.role ??
+        resposta.tipoUsuario,
+    );
+
+    if (tipo === 'ALUNO') {
+      const idAluno =
+        resposta.idAluno ??
+        (
+          resposta.usuario as
+            | { idAluno?: number | string; id?: number | string }
+            | undefined
+        )?.idAluno ??
+        (
+          resposta.usuario as
+            | { idAluno?: number | string; id?: number | string }
+            | undefined
+        )?.id;
+
+      if (idAluno != null) {
+        id = idAluno;
+      }
+    }
+
     const usuario: Usuario = {
       id,
       nome: resposta.usuario?.nome ?? resposta.nome ?? emailLogin,
       email: resposta.usuario?.email ?? resposta.email ?? emailLogin,
-      tipo: this.normalizarTipo(
-        resposta.usuario?.tipo ??
-          resposta.usuario?.role ??
-          resposta.usuario?.tipoUsuario ??
-          resposta.tipo ??
-          resposta.role ??
-          resposta.tipoUsuario,
-      ),
+      tipo,
     };
 
     this.usuarioAtual = usuario;
@@ -370,6 +408,52 @@ export class AuthService {
     } catch {
       return undefined;
     }
+  }
+
+  private extrairIdAlunoDoJwt(): number | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const partes = token.split('.');
+      if (partes.length < 2) {
+        return null;
+      }
+
+      const payload = JSON.parse(this.decodificarBase64Url(partes[1])) as Record<
+        string,
+        unknown
+      >;
+
+      for (const chave of ['idAluno', 'alunoId']) {
+        const valor = payload[chave];
+        if (valor != null && valor !== '' && !Number.isNaN(Number(valor))) {
+          return Number(valor);
+        }
+      }
+
+      const sub = payload['sub'];
+      if (typeof sub === 'string' && /^\d+$/.test(sub)) {
+        return Number(sub);
+      }
+
+      const tipoJwt = String(
+        payload['tipo'] ?? payload['role'] ?? payload['tipoUsuario'] ?? '',
+      ).toUpperCase();
+
+      if (tipoJwt.includes('ALUNO')) {
+        const id = this.extrairIdUsuario(payload);
+        if (id != null && !Number.isNaN(Number(id))) {
+          return Number(id);
+        }
+      }
+    } catch {
+      return null;
+    }
+
+    return null;
   }
 
   private decodificarBase64Url(valor: string): string {

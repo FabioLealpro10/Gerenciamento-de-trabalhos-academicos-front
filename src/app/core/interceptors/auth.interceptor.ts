@@ -65,7 +65,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }),
   ).pipe(
     catchError((erro: unknown) => {
-      // Token inválido/expirado: limpa a sessão e volta para o login
       if (erro instanceof HttpErrorResponse && isErroSessaoInvalida(erro)) {
         auth.logout();
         void router.navigate(['/login']);

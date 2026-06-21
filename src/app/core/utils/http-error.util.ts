@@ -160,20 +160,9 @@ export function isMensagemAcessoNegado(mensagem: string | null | undefined): boo
 }
 
 export function isErroSessaoInvalida(erro: HttpErrorResponse): boolean {
-  if (erro.status === 401) {
-    return true;
-  }
-
-  if (erro.status === 403) {
-    const mensagem = extrairMensagemApi(erro.error);
-    if (!mensagem) {
-      return true;
-    }
-
-    return isMensagemAutenticacao(mensagem);
-  }
-
-  return false;
+  // Apenas 401 indica sessão inválida. 403 costuma ser permissão/regra de negócio
+  // (ex.: aluno sem acesso a GET /trabalhos/{id}) e não deve derrubar a sessão.
+  return erro.status === 401;
 }
 
 export function mensagemRespostaApi(

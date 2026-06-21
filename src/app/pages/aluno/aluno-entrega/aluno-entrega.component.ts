@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
-import { catchError, finalize, forkJoin, of, switchMap } from 'rxjs';
+import { catchError, finalize, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { EntregasService } from '../../../core/services/entregas.service';
 import { AlunoContextService } from '../../../core/services/aluno-context.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -208,7 +208,7 @@ export class AlunoEntregaComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.authService.isAuthenticated()) {
+    if (!this.authService.getToken()) {
       void this.router.navigate(['/login']);
       return;
     }
@@ -225,6 +225,8 @@ export class AlunoEntregaComponent implements OnInit {
       (history.state?.['trabalho'] as TrabalhoListItem | undefined) ?? null;
     this.disciplina =
       (history.state?.['disciplina'] as DisciplinaListItem | undefined) ?? null;
+
+    this.alunoId = this.authService.getAlunoId();
 
     this.dataEntregaAutomatica = dataEntregaHoje();
     this.carregar();
@@ -247,19 +249,27 @@ export class AlunoEntregaComponent implements OnInit {
     this.loadingDados = true;
     this.cdr.detectChanges();
 
-    this.alunoContext
-      .obterIdAluno()
+    const idAluno$ =
+      this.alunoId != null
+        ? of(this.alunoId)
+        : this.alunoContext.obterIdAluno();
+
+    idAluno$
       .pipe(
         switchMap((idAluno) => {
           this.alunoId = idAluno;
 
           return forkJoin({
-            trabalho: this.trabalhosService
-              .buscarPorId(this.trabalhoId!)
-              .pipe(catchError(() => of(this.trabalho))),
-            disciplina: this.disciplinasService
-              .buscarPorId(this.disciplinaId!)
-              .pipe(catchError(() => of(this.disciplina))),
+            trabalho: this.trabalho
+              ? of(this.trabalho)
+              : this.trabalhosService
+                  .buscarPorId(this.trabalhoId!)
+                  .pipe(catchError(() => of(this.trabalho))),
+            disciplina: this.disciplina
+              ? of(this.disciplina)
+              : this.disciplinasService
+                  .buscarPorId(this.disciplinaId!)
+                  .pipe(catchError(() => of(this.disciplina))),
             entrega: this.entregasService.buscarPorAlunoTrabalho(
               idAluno,
               this.trabalhoId!,

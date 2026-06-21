@@ -47,7 +47,7 @@ export class AlunoTrabalhosListComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.authService.isAuthenticated()) {
+    if (!this.authService.getToken()) {
       void this.router.navigate(['/login']);
       return;
     }

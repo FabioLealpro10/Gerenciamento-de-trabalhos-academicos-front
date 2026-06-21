@@ -59,7 +59,7 @@ export class EntregasService {
           return this.normalizarEntrega(body as Record<string, unknown>);
         }),
         catchError((err: HttpErrorResponse) => {
-          if (err.status === 404) {
+          if (err.status === 404 || err.status === 403) {
             return of(null);
           }
           return throwError(() => err);
